@@ -8,7 +8,7 @@
 //   trace  [Writing]   trace a character over its outline
 export const CHUNK = 4;
 
-const shuffle = (a, rng) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+export const shuffle = (a, rng = Math.random) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 // n-1 distractors from the pool, avoiding duplicates of the shown value
 export function distractors(word, pool, n, key, rng) {

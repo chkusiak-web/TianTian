@@ -17,7 +17,7 @@ export function knownWordObjs(content, upto) {
   return [content.opening, ...content.beats].slice(0, upto + 1).flatMap((s) => s.words).map(wordObj).filter(Boolean);
 }
 
-export async function playSession({ content, index, store, cast, portraitFor, onStep }) {
+export async function playSession({ content, index, store, cast, portraitFor, onStep, onAt }) {
   const S = store.state;
   const def = index === 0 ? content.opening : content.beats[index - 1];
   const getStep = () => (index === 0 ? S.progress.openingStep : S.progress.beatStep) || 'refresh';
@@ -42,7 +42,7 @@ export async function playSession({ content, index, store, cast, portraitFor, on
     }
     if (getStep() === 'use') {
       panel.setStep('use'); panel.hide();
-      const r = await runConversation({ use: def.use, store, cast, portraitFor, sessionId: def.id, backdrop: index === 0 ? def.use.place : null });
+      const r = await runConversation({ use: def.use, store, cast, portraitFor, sessionId: def.id, onAt });
       panel.show();
       S.stats.conversations++;
       if (!r.misses && !r.hints) S.stats.cleanConversations++;

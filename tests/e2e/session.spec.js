@@ -13,6 +13,8 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
 
   // the arrival starts by itself
   await expect(page.locator('.storycard')).toContainText('Old Zhou');
+  await expect(page.locator('#arrival')).toBeVisible();              // the arrival has its own map, not the Baotu board
+  await expect(page.locator('.hudplace')).toContainText('济南西站');
   await page.click('.storycard button');
   await expect(page.locator('.sheet .steps li.now')).toHaveText(/Learn/);
   await expect(page.locator('.introhz')).toBeVisible();
@@ -32,6 +34,8 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   await autoplay(page, () => window.__store.state.progress.stage === 'district' && !document.querySelector('.storycard'));
   let s = await state(page);
   expect(s.progress.beat).toBe(0);
+  await expect(page.locator('#arrival')).toBeHidden();
+  await expect(page.locator('.hudplace')).toContainText('趵突泉');
   const openingWords = await page.evaluate(() => window.__content.opening.words.length);
   expect(Object.keys(s.words).length).toBe(openingWords);           // every opening word caught, nothing else
   expect(s.stats.conversations).toBe(1);

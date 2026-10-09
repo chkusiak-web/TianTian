@@ -12,6 +12,7 @@
 //                                                     (src/session/close.js): a repeated word said once, 吧/啊/呀/呢,
 //                                                     and words listed in `optional` may be left out or added.
 //   { note }                                          English narration between lines
+//   at: 'station' | 'road' | 'home'                   (opening only) moves the taxi on the arrival map (src/ui/arrival.js)
 import W from './baotu-words.json' with { type: 'json' };
 
 const words = Object.fromEntries(W.beats.map((b) => [b.id, b.words]));
@@ -27,15 +28,15 @@ export default {
     use: {
       place: 'In Old Pan\'s taxi, then at the courtyard gate on Qushuiting Street',
       steps: [
-        { note: 'Jinan West Station. A taxi driver waves you over and talks the whole way.' },
+        { at: 'station', note: 'Jinan West Station. A taxi driver waves you over and talks the whole way.' },
         { npc: 'pan', zh: '你好！你好！', en: 'Hello! Hello!' },
         { build: true, npc: 'pan', label: 'Speaking · greet Old Pan', q: 'Say hello back.', answer: '你好！', extra: ['谢谢', '不'] },
         { npc: 'pan', zh: '我是老潘。', en: 'I\'m Old Pan.' },
         { ask: 'listen', npc: 'pan', zh: '你是老周吗？', en: 'Are you Old Zhou?', label: 'Listening · answer Old Pan', q: 'Old Pan asks you something. Answer him.', options: ['是。', '不是。'], answer: '不是。' },
         { npc: 'pan', zh: '哦，你不是老周。', en: 'Oh, you\'re not Old Zhou.' },
-        { npc: 'pan', zh: '老周……七十三……七十三！', en: 'Old Zhou… seventy-three… seventy-three!' },
+        { at: 'road', npc: 'pan', zh: '老周……七十三……七十三！', en: 'Old Zhou… seventy-three… seventy-three!' },
         { ask: 'listen', npc: 'pan', zh: '七十三！', en: 'Seventy-three!', label: 'Listening · Old Pan\'s number', q: 'Which number does Old Pan keep saying?', options: ['七十三', '三十七', '十三'], answer: '七十三' },
-        { npc: 'pan', zh: '这是曲水亭街。谢谢你！', en: 'This is Qushuiting Street. Thank you!' },
+        { at: 'home', npc: 'pan', zh: '这是曲水亭街。谢谢你！', en: 'This is Qushuiting Street. Thank you!' },
         { note: 'An old man with a white beard is waiting at a courtyard gate. He has a key, and an old notebook.' },
         { npc: 'zhang', zh: '你好！我是张老师。', en: 'Hello! I\'m Teacher Zhang.' },
         { build: true, npc: 'zhang', label: 'Speaking · ask about the notebook', q: 'Ask him: is this Old Zhou\'s notebook?', answer: '这是老周的本子吗？', extra: ['你', '我'] },
@@ -59,17 +60,16 @@ export default {
       use: {
         place: 'By the railing at Baotu Spring, early morning',
         steps: [
-          { npc: 'wang', zh: '孩子，你好！', en: 'Hello, child!' },
-          { ask: 'listen', npc: 'wang', zh: '孩子，你好！', en: 'Hello, child!', label: 'Listening · what does she call you?', q: 'What does she call you?', options: ['孩子', '老潘', '老周'], answer: '孩子' },
+          { ask: 'listen', npc: 'wang', zh: '孩子，你好！', en: 'Hello, child!', label: 'Listening · what does she call you?', q: 'What does she call you?', options: ['孩子', '杯子', '本子'], answer: '孩子' },
           { npc: 'wang', zh: '我是王奶奶。我的杯子没有了！', en: 'I\'m Grandma Wang. My cup is gone!' },
+          { note: 'She means her thermos. Here, a thermos is just a 杯子, a cup.' },
           { ask: 'listen', npc: 'wang', zh: '我的杯子没有了！', en: 'My cup is gone!', label: 'Listening · what did Grandma lose?', q: 'What did Grandma Wang lose?', options: ['杯子', '本子', '孩子'], answer: '杯子' },
-          { ask: 'listen', npc: 'wang', zh: '没有了！没有了！', en: 'Gone! Gone!', label: 'Listening · what happened?', q: 'What happened to it?', options: ['没有了', '是我的', '不是'], answer: '没有了' },
+          { ask: 'listen', npc: 'wang', zh: '没有了！没有了！', en: 'Gone! Gone!', label: 'Listening · what happened?', q: 'What happened to it?', options: ['没有了', '不要了', '是白的'], answer: '没有了' },
           { npc: 'wang', zh: '是一个白杯子。', en: 'It\'s a white cup.' },
-          { ask: 'read', npc: 'wang', zh: '是一个白杯子。', en: 'It\'s a white cup.', label: 'Reading · which cup?', q: 'Which one is hers?', options: ['一个白杯子', '一个白本子', '七个杯子'], answer: '一个白杯子' },
+          { ask: 'read', npc: 'wang', zh: '是一个白杯子。', en: 'It\'s a white cup.', label: 'Reading · which cup?', q: 'Which one is hers?', options: ['一个白杯子', '一个白本子', '三个白杯子'], answer: '一个白杯子' },
           { npc: 'wang', zh: '孩子，这是泉。', en: 'Child, this is the spring.' },
           { ask: 'read', npc: 'wang', zh: '孩子，这是……', en: 'Child, this is…', label: 'Reading · what is this?', q: 'She points at the bubbling water. What is it?', options: ['泉', '杯子', '本子'], answer: '泉' },
-          { npc: 'wang', zh: '我想要我的杯子！', en: 'I want my cup!' },
-          { ask: 'listen', npc: 'wang', zh: '我想要我的杯子！', en: 'I want my cup!', label: 'Listening · what does she want?', q: 'What does she want?', options: ['想要杯子', '想要本子', '不要杯子'], answer: '想要杯子' },
+          { ask: 'listen', npc: 'wang', zh: '我想要我的杯子！', en: 'I want my cup!', label: 'Listening · what does she want?', q: 'What does she want?', options: ['想要杯子', '没有杯子', '不要杯子'], answer: '想要杯子' },
           { npc: 'wang', zh: '孩子，你先。', en: 'Child, you first.' },
           { note: 'She steps back from the railing so you can look first.' },
           { build: true, npc: 'wang', label: 'Speaking · be polite', q: 'Be polite: "No, no, you first!"', answer: '不，不，你先！', extra: ['我', '是'] },

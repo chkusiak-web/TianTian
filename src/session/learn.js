@@ -1,6 +1,6 @@
 // Learn (CONCEPT §2.1): each new word gets an intro card (Listen, Strokes), then quick drills.
 // The first right answer catches a word; a miss shows the answer and the drill comes back two items later.
-import { buildLearnQueue, requeue } from './drills.js';
+import { buildLearnQueue, requeue, shuffle } from './drills.js';
 import { askChoice, askTrace, confirmBox, strokeAnimation, hasStrokes, marks, esc, speak } from './quiz-ui.js';
 import { catchWord } from '../core/words.js';
 
@@ -10,9 +10,10 @@ export async function runLearn(panel, { words, pool, store, silent, leniency, fr
   const S = store.state;
   const todo = words.filter((w) => !S.words[w.id]);
   if (!todo.length) return;
-  panel.body.innerHTML = '<div class="loading">Getting today\'s words ready…</div>';
+  panel.body.innerHTML = `<div class="loading"><b>${esc(frame)}</b><span>Getting today's ${todo.length} words ready</span><span class="dots"><i></i><i></i><i></i></span></div>`;
   const strokeable = new Set();
-  for (const w of todo) if ([...w.h].length === 1 && await hasStrokes(w.h)) strokeable.add(w.h);
+  const single = todo.filter((w) => [...w.h].length === 1);
+  (await Promise.all(single.map((w) => hasStrokes(w.h)))).forEach((ok, i) => ok && strokeable.add(single[i].h));
   const queue = buildLearnQueue(todo, { pool, silent, traceable: (h) => strokeable.has(h) });
   const total = queue.filter((x) => x.t !== 'intro').length;
   let doneDrills = 0;
@@ -24,6 +25,7 @@ export async function runLearn(panel, { words, pool, store, silent, leniency, fr
     const card = b.querySelector('.card');
 
     if (it.t === 'intro') {
+      card.classList.add('intro');
       card.innerHTML = `<div class="label">New word</div>
         <div class="introhz zh" data-nohz>${esc(w.h)}</div><div class="intropy">${esc(w.p)}</div><div class="introen">${esc(w.m)}</div>
         <div class="strokes"></div>
@@ -79,7 +81,7 @@ export async function runRefresh(panel, { due, pool, store, rng = Math.random })
     const ctx = ((S.ctx || {})[w.id] || []).find((c) => c.zh.includes(w.h) && c.zh !== w.h);
     let ok;
     if (ctx) {
-      const opts = [w, ...pool.filter((x) => x.id !== w.id && x.h.length === w.h.length).sort(() => rng() - 0.5).slice(0, 2)].sort(() => rng() - 0.5);
+      const opts = shuffle([w, ...shuffle(pool.filter((x) => x.id !== w.id && x.h.length === w.h.length), rng).slice(0, 2)], rng);
       card.innerHTML = `<div class="label">Review · fill the gap</div><div class="qline zh">${esc(ctx.zh).replace(esc(w.h), '<span class="gap">＿＿</span>')}</div><div class="qarea"></div>`;
       ({ ok } = await panel.guard(askChoice(card.querySelector('.qarea'), { options: opts.map((o) => ({ html: esc(o.h), value: o.id, zh: true })), answer: w.id, answerHtml: esc(w.h), glossText: `${w.p} · ${w.m}` })));
     } else {

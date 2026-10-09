@@ -23,6 +23,8 @@ import castData from '../content/cast.js';
 import { playSession, storyCard } from './session/runner.js';
 import { renderPage, wirePage } from './session/notebook.js';
 import { openModal, closeModal } from './ui/modal.js';
+import { preloadStrokes } from './session/quiz-ui.js';
+import { createArrival } from './ui/arrival.js';
 
 const store = createStore(createAdapter());
 store.load();
@@ -59,11 +61,15 @@ const hud = createHud({
   onTarget: (t) => pick(t)
 });
 
+const arrival = createArrival({ box, base: import.meta.env.BASE_URL, onTitle: (t) => hud.setTitle(t) });
+
 let busy = false;     // a session is running
 const P = () => store.state.progress;
 
 function refresh() {
   const p = P();
+  if (p.stage === 'opening' && !arrival.on) arrival.show(p.openingStep === 'notebook' ? 'home' : 'station');
+  if (p.stage !== 'opening' && arrival.on) arrival.hide();
   if (p.stage === 'opening') { hud.setHint('arrive in Jinan.', busy ? null : p.openingStep && p.openingStep !== 'refresh' ? 'Continue' : 'Begin'); if (scene) scene.setBeat(-1); return; }
   const place = places.beatPlaces[p.beat];
   const def = content.beats[p.beat];
@@ -84,7 +90,7 @@ async function startOpening() {
   busy = true; hud.clearHover(); refresh();
   try {
     if (!P().openingStep || P().openingStep === 'refresh') await storyCard('You have come to Jinan to settle the estate of your great-uncle, Old Zhou. He lived on Qushuiting Street for fifty years. You don\'t speak Chinese yet.', 'Begin');
-    const r = await playSession({ content, index: 0, store, cast: castData.people, portraitFor, onStep: refresh });
+    const r = await playSession({ content, index: 0, store, cast: castData.people, portraitFor, onStep: refresh, onAt: (stop) => arrival.at(stop) });
     if (r === 'done') {
       const p = P(); p.stage = 'district'; p.openingStep = 'done'; p.beat = 0; p.beatStep = 'refresh'; store.save();
       await storyCard('Next morning, you walk to Baotu Spring.', 'Go');
@@ -151,6 +157,6 @@ window.__game = createGame('phaser', {
   district: places,
   getBeat: () => (P().stage === 'opening' ? -1 : P().beat),
   onView: (s) => hud.setView(s, s.now),
-  onReady: (s) => { scene = s; manifest = s.cache.json.get('manifest'); window.__scene = s; refresh(); maybeStartOpening(); }
+  onReady: (s) => { scene = s; manifest = s.cache.json.get('manifest'); window.__scene = s; refresh(); maybeStartOpening(); setTimeout(preloadStrokes, 300); }
 });
 refresh();

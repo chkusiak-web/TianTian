@@ -16,7 +16,7 @@ const listenHtml = () => `<div class="listen"><button class="play" aria-label="P
 
 const idsIn = (text) => wordsIn(text).map((t) => lookup(t)).filter((e) => e && (!e.kind || e.kind === 'taught')).map((e) => String(e.id));
 
-export function runConversation({ use, store, cast, portraitFor, sessionId, backdrop }) {
+export function runConversation({ use, store, cast, portraitFor, sessionId, onAt }) {
   const S = store.state;
   const result = { misses: 0, hints: 0, caught: [] };
   const silentToday = () => { const m = S.settings.silent; return !!(m && m.on && m.date === todayKey()); };
@@ -24,10 +24,8 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, back
     const el = document.createElement('div');
     el.className = 'dialogue convo panel';
     el.setAttribute('role', 'dialog');
-    let bd = null;
-    if (backdrop) { bd = document.createElement('div'); bd.className = 'backdrop'; bd.innerHTML = `<div class="bdplace">${esc(backdrop)}</div>`; document.getElementById('overlay').appendChild(bd); }
     let finished = false;
-    openModal(el, { onClose: () => { if (bd) bd.remove(); if (!finished) reject(new Paused()); } });
+    openModal(el, { onClose: () => { if (!finished) reject(new Paused()); } });
 
     let advance = null;
     const wait = () => new Promise((res) => { advance = res; });
@@ -52,6 +50,7 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, back
 
     (async () => {
       for (const step of use.steps) {
+        if (step.at && onAt) onAt(step.at);   // the scene moves on (the arrival's taxi)
         const box = frame(step);
         if (step.note) {
           box.line.innerHTML = `<em>${esc(step.note)}</em>`; nextBtn(box); box.foot.querySelector('.dsay').remove();

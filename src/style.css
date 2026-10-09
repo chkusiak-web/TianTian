@@ -155,7 +155,8 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 .learnhead .note { font-size: .9em; }
 .progress { width: 100%; height: .4em; background: var(--soft); border-radius: 99em; overflow: hidden; }
 .progress i { display: block; height: 100%; background: var(--teal); border-radius: 99em; transition: width .3s; }
-.card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5em; text-align: center; }
+.card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: .8em; text-align: center; padding-top: 1.2em; }
+.card.intro { justify-content: center; padding-top: 0; }
 .label { font: 800 .78em/1.2 var(--font); color: var(--teal-d); text-transform: uppercase; letter-spacing: .12em; }
 .introhz { font: 500 calc(var(--bw) * .085)/1.2 var(--font-zh); letter-spacing: .04em; }
 .intropy { font-size: calc(var(--ui) * 1.6); font-weight: 700; }
@@ -189,11 +190,14 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 .slots { min-height: 2.4em; min-width: 50%; display: flex; gap: .35em; justify-content: center; align-items: center; border-bottom: 2px dashed var(--rule); padding: .2em .5em; }
 .tiles { display: flex; gap: .5em; flex-wrap: wrap; justify-content: center; }
 .tile { font: 500 var(--zh) var(--font-zh); padding: .2em .65em; }
+.tile { position: relative; }
+.tiles .tile::after { content: attr(data-key); position: absolute; top: .3em; right: .35em; font: 700 .32em/1 var(--font); color: var(--muted); }
 .tile:disabled { opacity: .3; }
 .build.checked .slots .tile:disabled { opacity: 1; }
 .build.checked.ok .slots .tile { background: var(--lawn-l); border-color: var(--green); box-shadow: 0 .22em 0 var(--green); }
 .build.checked.no .slots .tile { background: var(--red-l); border-color: var(--red); box-shadow: 0 .22em 0 var(--red); }
-.trace .tracebox { background: #fff; border: 2px solid var(--rule); border-radius: .6em; width: 200px; height: 200px; }
+.trace { display: flex; flex-direction: column; align-items: center; gap: .6em; }
+.trace .tracebox { background: #fff; border: 2px solid var(--rule); border-radius: .6em; line-height: 0; }
 
 /* conversation (Use) */
 .dialogue.convo .dbody { max-height: 62vh; overflow: auto; }
@@ -205,8 +209,6 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 .dask .choices, .dask .tiles, .dask .slots { justify-content: flex-start; }
 .dask .confirm { justify-content: flex-start; }
 .dask .build { align-items: flex-start; } .dask .slots { min-width: 40%; }
-.backdrop { position: absolute; inset: 0; background: linear-gradient(#DCEBE8 0 55%, var(--paper) 55% 100%); z-index: 5; display: flex; justify-content: center; }
-.bdplace { margin-top: 6%; font-size: 1.3em; color: var(--muted); font-weight: 700; }
 
 /* the notebook: a book over a darkened scene; unread words are rough ink blots */
 .sheet.book { left: 12%; right: 12%; width: auto; top: 4%; bottom: 4%; box-shadow: 0 0 0 100vmax rgba(36, 48, 43, .45), var(--shadow-lg); }
@@ -229,4 +231,19 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 /* story cards */
 .storycard { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(36, 48, 43, .5); z-index: 30; }
 .storycard .panel { max-width: 48%; text-align: center; font-size: 1.15em; line-height: 1.6; display: grid; gap: .8em; justify-items: center; }
-.loading { margin: auto; color: var(--muted); }
+.loading { margin: auto; color: var(--muted); display: grid; justify-items: center; gap: .8em; text-align: center; }
+.loading b { font-size: 1.15em; color: var(--ink); }
+.loading .dots { display: flex; gap: .4em; } .loading .dots i { width: .6em; height: .6em; border-radius: 50%; background: var(--teal); animation: dot 1s infinite ease-in-out; }
+.loading .dots i:nth-child(2) { animation-delay: .15s; } .loading .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes dot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-.3em); } }
+/* while a lesson is docked, the pins under it fade: nothing on the board can be clicked during a session */
+#box:has(.sheet:not([hidden]):not(.book)) #labels { opacity: 0; transition: opacity .2s; }
+
+/* the arrival: the city map with Old Pan's taxi */
+#arrival { position: absolute; inset: 0; background: #A9C98A; overflow: hidden; }
+#arrival img, #arrival svg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+#arrival polyline { fill: none; stroke: var(--gold); stroke-width: 4; stroke-dasharray: 2 8; stroke-linecap: round; }
+#arrival .taxi { position: absolute; width: 4.2%; transform: translate(-50%, -80%); transition: left 2.2s ease-in-out, top 2.2s ease-in-out; filter: drop-shadow(0 .15em 0 rgba(36, 48, 43, .35)); }
+#arrival .taxi canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; }
+#arrival .taxi.parked { filter: drop-shadow(0 0 .3em #fff) drop-shadow(0 .15em 0 rgba(36, 48, 43, .35)); }
+#box:has(#arrival:not([hidden])) #labels { display: none; }

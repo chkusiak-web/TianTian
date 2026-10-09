@@ -19,7 +19,7 @@ export default {
       hot: { x: 296, y: 280, w: 104, h: 76 }, pin: { x: 348, y: 318 },
       view: { x: 268, y: 284 },
       people: [
-        { id: 'wang', name: '王奶奶', en: 'Grandma Wang', x: 336, y: 351, face: 'up', lines: [{ zh: '孩子，你好！', en: 'Hello, child!' }, { zh: '我是王奶奶。', en: 'I am Grandma Wang.' }] }
+        { id: 'wang', name: '王奶奶', en: 'Grandma Wang', x: 388, y: 335, face: 'down', lines: [{ zh: '孩子，你好！', en: 'Hello, child!' }, { zh: '我是王奶奶。', en: 'I am Grandma Wang.' }] }
       ],
       objects: [{ type: 'signpost', x: 300, y: 362, sign: 'gate4' }]
     },

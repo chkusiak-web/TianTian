@@ -8,6 +8,7 @@ import { splitWords, lookup, pinyinOf, numToMarks } from '../lexicon.js';
 export { esc } from '../core/esc.js';
 import { esc } from '../core/esc.js';
 import { judgeBuild } from './close.js';
+import { shuffle } from './drills.js';
 const devOn = () => { try { return !!window.__store.state.dev.autoAnswer; } catch { return false; } };
 
 // gloss for the confirm box: pinyin · English of a word or phrase
@@ -67,12 +68,15 @@ export function askChoice(area, { options, answer, answerHtml, glossText }) {
   });
 }
 
+// keys for tiles: 1–9, then 0, then the row under them
+export const TILE_KEYS = [...'1234567890qwertyuiop'];
+
 // Build a sentence from word tiles (CONCEPT §6.9). Punctuation is added back for display; only the words count.
 // `accept`: other answers that are also right (e.g. 谢谢！ for "thank him" when the model answer is 谢谢你！).
 export function askBuild(area, { answer, accept = [], optional = [], extra = [], rng = Math.random, allowHint = true }) {
   return new Promise((resolve) => {
     const target = splitWords(answer).filter((p) => p.w).map((p) => p.t);
-    const tiles = [...target, ...extra].map((t, i) => ({ t, i })).sort(() => rng() - 0.5);
+    const tiles = shuffle([...target, ...extra].map((t, i) => ({ t, i })), rng);
     const placed = [];
     let hinted = false, done = false;
     const wrap = document.createElement('div');
@@ -84,7 +88,7 @@ export function askBuild(area, { answer, accept = [], optional = [], extra = [],
     setHzLock(true);
     const draw = () => {
       wrap.querySelector('.slots').innerHTML = placed.length ? placed.map((p, k) => `<button class="btn tile placed zh" data-k="${k}">${esc(p.t)}</button>`).join('') : '<span class="note">Click the tiles in order</span>';
-      wrap.querySelector('.tiles').innerHTML = tiles.map((p) => `<button class="btn tile zh" data-i="${p.i}" ${placed.includes(p) ? 'disabled' : ''}>${esc(p.t)}</button>`).join('');
+      wrap.querySelector('.tiles').innerHTML = tiles.map((p, n) => `<button class="btn tile zh" data-i="${p.i}" ${placed.includes(p) ? 'disabled' : ''} data-key="${TILE_KEYS[n] || ''}">${esc(p.t)}</button>`).join('');
       wrap.querySelectorAll('.tiles .tile').forEach((b) => (b.onclick = () => { const p = tiles.find((x) => x.i === +b.dataset.i); if (!placed.includes(p)) { placed.push(p); draw(); } }));
       wrap.querySelectorAll('.slots .tile').forEach((b) => (b.onclick = () => { placed.splice(+b.dataset.k, 1); draw(); }));
     };
@@ -105,7 +109,7 @@ export function askBuild(area, { answer, accept = [], optional = [], extra = [],
     setKeys((e) => {
       if (e.key === 'Enter') { e.preventDefault(); check(); }
       else if (e.key === 'Backspace') { e.preventDefault(); placed.pop(); draw(); }
-      else { const n = +e.key; if (n >= 1 && n <= tiles.length) { const p = tiles[n - 1]; if (!placed.includes(p)) { placed.push(p); draw(); } } }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey) { const n = TILE_KEYS.indexOf(e.key.toLowerCase()); if (n >= 0 && n < tiles.length) { e.preventDefault(); const p = tiles[n]; if (!placed.includes(p)) { placed.push(p); draw(); } } }
     });
     draw();
   });
@@ -118,6 +122,8 @@ async function strokesLib() {
   if (!STROKES) STROKES = (await import('../vendor/strokes.js')).default;
   return { HW, STROKES };
 }
+// the stroke data is large: start loading it while the player is still on the map
+export const preloadStrokes = () => strokesLib().catch(() => {});
 export const hasStrokes = async (ch) => !!(await strokesLib()).STROKES[ch];
 
 export async function strokeAnimation(el, ch) {
@@ -136,12 +142,17 @@ export function askTrace(area, { ch, leniency = 1.8 }) {
     wrap.innerHTML = `<div class="tracebox"></div><div class="row"><button class="btn twatch">Show me</button>${devOn() ? '<button class="btn tdev" data-dev-ok="1">Pass (dev)</button>' : ''}<span class="note">Draw each stroke over the outline.</span></div>`;
     area.appendChild(wrap);
     let finished = false;
-    const finish = async (ok) => { if (finished) return; finished = true; await confirmBox(area, ok, esc(ch), ''); resolve({ ok }); };
+    let watched = false;   // "Show me" is a hint, not a miss: trace it after watching and it still counts
+    const finish = async (ok) => { if (finished) return; finished = true; await confirmBox(area, ok, esc(ch), ''); resolve({ ok, hint: watched }); };
     if (!STROKES[ch]) { finish(true); return; }
-    const w = HW.create(wrap.querySelector('.tracebox'), ch, { width: 220, height: 220, padding: 10, showCharacter: false, showOutline: true, strokeColor: '#2A2622', outlineColor: '#C9C3B6', drawingColor: '#3A95BE', drawingWidth: 14, leniency,
+    // as big as the panel allows: most of its width, about half its height
+    const panel = area.closest('.sheetbody') || area;
+    const size = Math.round(Math.max(200, Math.min(area.clientWidth * 0.75, panel.clientHeight * 0.55, 420)));
+    const w = HW.create(wrap.querySelector('.tracebox'), ch, { width: size, height: size, padding: 10, showCharacter: false, showOutline: true, strokeColor: '#2A2622', outlineColor: '#C9C3B6', drawingColor: '#3A95BE', drawingWidth: Math.round(size / 16), leniency,
       charDataLoader: (c, ok, err) => (STROKES[c] ? ok(STROKES[c]) : err('missing')) });
-    w.quiz({ onComplete: ({ totalMistakes }) => finish(totalMistakes <= Math.max(2, STROKES[ch].strokes.length / 2)) });
-    wrap.querySelector('.twatch').onclick = () => { w.cancelQuiz(); w.animateCharacter({ onComplete: () => w.quiz({ onComplete: () => finish(false) }) }); };
+    const quiz = () => w.quiz({ onComplete: ({ totalMistakes }) => finish(totalMistakes <= Math.max(2, STROKES[ch].strokes.length / 2)) });
+    quiz();
+    wrap.querySelector('.twatch').onclick = () => { watched = true; w.cancelQuiz(); w.animateCharacter({ onComplete: quiz }); };
     const dev = wrap.querySelector('.tdev'); if (dev) dev.onclick = () => { w.cancelQuiz(); finish(true); };
   });
 }

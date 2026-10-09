@@ -45,7 +45,15 @@ export function createHud({ name, onSettings, onDictionary, onNotebook, onToday,
     return el;
   }
 
+  let title = null, lastPlace = null;   // a title from the arrival overrides the district's name
+  const showTitle = () => {
+    hud.querySelector('.hudplace b').textContent = title ? title.zh : name.zh;
+    hud.querySelector('#hudWhere').textContent = title ? title.en : lastPlace ? lastPlace.en : name.en;
+    hud.querySelector('#hudBack').hidden = !!title || !lastPlace;
+  };
+
   return {
+    setTitle(t) { title = t; showTitle(); },
     setHint(text, button) {
       const h = hud.querySelector('#hint');
       h.innerHTML = text ? `Next: ${esc(text)}` : '';
@@ -55,8 +63,7 @@ export function createHud({ name, onSettings, onDictionary, onNotebook, onToday,
     // rebuild the buttons for the board or a place; `now` is today's beat place ({ place, npc }) or null
     setView(scene, now) {
       const place = scene.view === 'place' ? scene.place : null;
-      hud.querySelector('#hudBack').hidden = !place;
-      hud.querySelector('#hudWhere').textContent = place ? place.en : name.en;
+      lastPlace = place; showTitle();
       labels.innerHTML = '';
       const pins = [];
       for (const t of scene.targets) {
