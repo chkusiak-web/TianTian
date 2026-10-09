@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Walkable district spike</title>
+<style>
+html,body{margin:0;height:100%;background:#24302B;color:#F4EACA;font:14px/1.4 system-ui,sans-serif}
+#wrap{position:relative;width:100vw;height:100vh}
+#game{position:absolute;inset:0}
+#hud{position:absolute;left:12px;top:10px;background:#24302Bcc;padding:6px 10px;border-radius:6px;pointer-events:none}
+#place{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:#FBF7EC;color:#24302B;padding:6px 14px;border-radius:6px;font-size:22px;display:none}
+</style></head><body>
+<div id="wrap"><div id="game"></div>
+<div id="hud">Arrows / WASD to walk · Shift to run · keys 1–4 change zoom · <b id="z"></b></div>
+<div id="place"></div></div>
+<script type="module" src="./walk.js"></script>
+</body></html>
