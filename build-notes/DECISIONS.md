@@ -17,3 +17,4 @@
 15. Dev panel only loads with `?dev` in the address (user feedback: not wanted in normal play). The Playwright run uses `/?dev`.
 16. Saving is automatic and invisible. Export / import / reset live in Settings, not on the main screen.
 17. Hover tip stays up while the mouse crosses punctuation or gaps inside one line; a locked word says "Pinyin unlocks after you answer" instead of showing nothing.
+18. Question lock, user choice B (changes CONCEPT §6.1 / 天天's HZ_LOCK): the question text stays hoverable; only the answer tiles are locked until you answer, right or wrong. Applied to drills, challenges and the gate quiz alike.

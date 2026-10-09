@@ -21,8 +21,8 @@ kbd { font: inherit; font-size: .8em; border: 1px solid var(--stone3); border-bo
 .hz.w:hover { border-bottom-color: var(--earth3); background: rgba(232, 185, 58, .25); }
 .zh { font-size: var(--zh); }
 .hztip { position: fixed; z-index: 100; background: var(--line); color: var(--stone1); padding: .25em .6em; border-radius: 3px; font-size: var(--ui); pointer-events: none; white-space: nowrap; }
-.question.locked .hz.w { cursor: default; }
-.question.locked .hz.w:hover { background: none; }
+.question.locked .answers .hz.w { cursor: default; }
+.question.locked .answers .hz.w:hover { background: none; }
 .hztip.lock { background: var(--stone3); }
 
 /* pixel panels */

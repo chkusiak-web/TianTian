@@ -16,9 +16,9 @@ export function mountShellDemo({ store, toast }) {
     <h3>Question lock</h3>
     <div class="question locked" id="q">
       <div class="sample">${esc(q.prompt)}</div>
-      <div class="choices">${q.options.map((o) => `<button class="btn" data-opt="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+      <div class="choices answers">${q.options.map((o) => `<button class="btn" data-opt="${esc(o)}">${esc(o)}</button>`).join('')}</div>
       <div class="verdict" id="verdict"></div>
-      <p class="note" id="qnote">Hover is locked while the question is open. Try it, then answer.</p>
+      <p class="note" id="qnote">You can hover the question. The answers stay locked until you pick one.</p>
     </div>
     <h3>Settings</h3>
     <label class="toggle"><input type="checkbox" id="silent" ${S.settings.silent.on ? 'checked' : ''}> Silent mode</label>

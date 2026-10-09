@@ -21,13 +21,15 @@ test('checkpoint 1 shell: canvas, hover, click, question lock, autosave, dev pan
     await expect(page.locator('.hztip')).toBeVisible();
   }
 
-  // locked inside the question until answered, and says so
-  await page.locator('#q .hz').first().hover();
+  // the question itself hovers; the answer tiles are locked until answered, and say so
+  await page.locator('#q .sample .hz').nth(1).hover();
+  await expect(page.locator('.hztip')).toHaveText(/shì/);
+  await page.locator('#q .answers .hz').first().hover();
   await expect(page.locator('.hztip')).toHaveText(/unlocks after you answer/);
   await page.locator('[data-opt="杯子"]').click();
   await expect(page.locator('.verdict.ok')).toBeVisible();
-  await page.locator('#q .hz').nth(1).hover();
-  await expect(page.locator('.hztip')).toHaveText(/shì/);
+  await page.locator('#q .answers .hz').nth(1).hover();
+  await expect(page.locator('.hztip')).toHaveText(/Lǎo Zhōu|lǎo zhōu/i);
 
   // settings save by themselves and survive a reload; no dev panel in normal play
   await page.locator('#slow').check();
