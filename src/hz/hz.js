@@ -56,7 +56,7 @@ export function initHz(root = document.body) {
     }
     if (el === tipEl) return;
     tipEl = el;
-    if (blocked(el)) { showTip(el, '🔒 Pinyin unlocks after you answer'); tip.classList.add('lock'); return; }
+    if (blocked(el)) { hideTip(); return; }   // locked: hover does nothing (no message either)
     tip.classList.remove('lock');
     showTip(el, el.dataset.py || pinyinOf(el.textContent));
   });

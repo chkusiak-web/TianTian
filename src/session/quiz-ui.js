@@ -64,7 +64,8 @@ export function askChoice(area, { options, answer, answerHtml, glossText }) {
 }
 
 // Build a sentence from word tiles (CONCEPT §6.9). Punctuation is added back for display; only the words count.
-export function askBuild(area, { answer, extra = [], rng = Math.random, allowHint = true }) {
+// `accept`: other answers that are also right (e.g. 谢谢！ for "thank him" when the model answer is 谢谢你！).
+export function askBuild(area, { answer, accept = [], extra = [], rng = Math.random, allowHint = true }) {
   return new Promise((resolve) => {
     const target = splitWords(answer).filter((p) => p.w).map((p) => p.t);
     const tiles = [...target, ...extra].map((t, i) => ({ t, i })).sort(() => rng() - 0.5);
@@ -85,11 +86,13 @@ export function askBuild(area, { answer, extra = [], rng = Math.random, allowHin
     };
     const check = async () => {
       if (done || !placed.length) return; done = true; setKeys(null);
-      const ok = placed.map((p) => p.t).join('|') === target.join('|');
+      const words = (s) => splitWords(s).filter((p) => p.w).map((p) => p.t).join('|');
+      const got = placed.map((p) => p.t).join('|');
+      const ok = [answer, ...accept].some((a) => words(a) === got);
       wrap.querySelectorAll('button').forEach((b) => (b.disabled = true));
       setHzLock(false);
       await confirmBox(area, ok, esc(answer), target.map(pinyinOf).join(' '));
-      resolve({ ok, hint: hinted });
+      resolve({ ok, hint: hinted, said: placed.map((p) => p.t).join('') });
     };
     wrap.querySelector('.bundo').onclick = () => { placed.pop(); draw(); };
     wrap.querySelector('.bcheck').onclick = check;

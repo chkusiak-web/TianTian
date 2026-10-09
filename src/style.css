@@ -182,3 +182,4 @@ kbd { font: inherit; font-size: .8em; border: 1px solid var(--stone3); border-bo
 .loading { margin: auto; color: var(--stone3); }
 .dialogue { z-index: 8; }
 .dask .build { align-items: flex-start; } .dask .slots { min-width: 40%; }
+.dialogue .dline.hiddenline { color: var(--stone3); font-size: 1em; }

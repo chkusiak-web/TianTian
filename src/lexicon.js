@@ -12,7 +12,8 @@ const byHan = new Map();   // word -> entry (lowest HSK level wins)
 for (const w of WORDS) { const o = byHan.get(w.h); if (!o || w.hsk < o.hsk) byHan.set(w.h, w); }
 
 // numbered pinyin ("bei1 zi5") to tone marks
-export const numToMarks = (n) => { try { return convert(n, { format: 'numToSymbol' }); } catch { return n; } };
+// numbered pinyin → tone marks. A neutral tone (5 or 0) has no mark, and pinyin-pro would leave the digit in ("xie5").
+export const numToMarks = (n) => { const s = String(n).replace(/([a-zü:v]+)[50](?=\s|$)/gi, '$1'); try { return convert(s, { format: 'numToSymbol' }); } catch { return s; } };
 export const pyPlain = (s) => { try { return pinyin(s, { toneType: 'symbol', type: 'string' }); } catch { return ''; } };
 
 // Extra (non-HSK) entries get ids like "x:泉" so they can live in the same save maps as HSK ids.

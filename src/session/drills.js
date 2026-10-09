@@ -46,7 +46,7 @@ export function buildLearnQueue(words, { pool = [], rng = Math.random, silent = 
       drills.push({ t: 'pick', w, options: shuffle([w, ...distractors(w, opts, 2, 'm', rng)], rng) });
       drills.push({ t: 'hear', w, silent, options: shuffle([w, ...distractors(w, opts, 2, 'h', rng)], rng) });
       if (w.n && (i % 2 === 0 || [...w.h].length > 1)) {
-        const vs = toneVariants(w.n, 2, rng);
+        const vs = toneVariants(w.n, 3, rng);
         if (vs.length) drills.push({ t: 'tone', w, options: shuffle([w.n, ...vs], rng) });
       }
       if (traced < maxTrace && [...w.h].length === 1 && traceable(w.h)) { drills.push({ t: 'trace', w }); traced++; }

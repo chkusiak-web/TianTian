@@ -7,6 +7,7 @@ import { askChoice, askBuild, esc, speak, gloss } from './quiz-ui.js';
 import { wordsIn, lookup } from '../lexicon.js';
 import { catchWord, markSeen, addCtx } from '../core/words.js';
 import { Paused } from '../ui/panel.js';
+import { todayKey } from '../core/clock.js';
 
 // vocabulary in a line: HSK and taught words (names and particles are never 'caught')
 const idsIn = (text) => wordsIn(text).map((t) => lookup(t)).filter((e) => e && (!e.kind || e.kind === 'taught')).map((e) => String(e.id));
@@ -14,6 +15,7 @@ const idsIn = (text) => wordsIn(text).map((t) => lookup(t)).filter((e) => e && (
 export function runConversation({ use, store, cast, portraitFor, sessionId, backdrop }) {
   const S = store.state;
   const result = { misses: 0, hints: 0, caught: [] };
+  const silentToday = () => { const m = S.settings.silent; return !!(m && m.on && m.date === todayKey()); };
   return new Promise((resolve, reject) => {
     const el = document.createElement('div');
     el.className = 'dialogue convo panel';
@@ -57,15 +59,19 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, back
           await wait(); continue;
         }
         // a prompt
-        if (step.zh) { say(box, step); box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button>`; box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc }); }
+        // a listening question doesn't show the line until you've answered (silent mode shows it: it becomes reading)
+        const hidden = step.ask === 'listen' && step.zh && !silentToday();
+        if (step.zh) { say(box, step); if (hidden) { box.line.innerHTML = '<span class="note">🔊 Listen…</span>'; box.line.classList.add('hiddenline'); } box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button>`; box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc }); }
         box.ask.innerHTML = `<div class="label">${esc(step.label)}</div><div class="q">${esc(step.q)}</div><div class="qarea"></div>`;
         const area = box.ask.querySelector('.qarea');
         let r;
         if (step.ask) r = await askChoice(area, { options: step.options.map((o) => ({ html: esc(o), value: o, zh: true })), answer: step.answer, answerHtml: esc(step.answer), glossText: gloss(step.answer) });
-        else r = await askBuild(area, { answer: step.answer, extra: step.extra || [] });
+        else r = await askBuild(area, { answer: step.answer, accept: step.accept || [], extra: step.extra || [] });
         if (r.hint) result.hints++;
         if (!r.ok) result.misses++;
-        if (r.ok && !r.hint) for (const id of idsIn(step.answer)) { if (catchWord(S, id)) result.caught.push(id); addCtx(S, id, step.answer, sessionId); }
+        if (hidden) { box.line.textContent = step.zh; box.line.classList.remove('hiddenline'); }
+        const said = r.said || step.answer;
+        if (r.ok && !r.hint) for (const id of idsIn(said)) { if (catchWord(S, id)) result.caught.push(id); addCtx(S, id, said, sessionId); }
         store.save();
       }
       finished = true;

@@ -33,3 +33,4 @@
 31. In single-word drills (pick the meaning, pick the tones), the word being tested can't be hovered until you answer, otherwise click-for-English gives the answer away. Hover on question text elsewhere stays on (choice B).
 32. Pausing: ✕ or Esc closes a session; the step is saved and the next visit resumes there (Learn skips words already caught).
 33. Text per beat (§6.10, 40–150 characters) is a warning, not a failure. The Hook is at 153 counting answer options.
+34. Playtest fixes: tone options drop the neutral-tone digit ("xie5" → "xie") and offer four choices; a listening question hides the line until you answer (silent mode shows it); build prompts can accept other right answers (谢谢！ for "thank him"); a locked word shows nothing on hover, no "unlocks after you answer" message (user feedback).
