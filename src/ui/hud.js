@@ -39,7 +39,7 @@ export function createHud({ name, onSettings, onDictionary, onNotebook, onToday,
     el.setAttribute('aria-label', `${VERB[t.kind]}: ${t.kind === 'sign' ? t.sign.en : t.en}`);
     el.innerHTML = `<span class="tag" data-nohz><i>${esc([...text][0])}</i>${esc(text)}</span><span class="pin"></span>`;
     el.style.left = pctX(x); el.style.top = pctY(y);
-    el.onclick = () => { hover(null); onTarget(t); };
+    el.onclick = () => { el.blur(); hover(null); onTarget(t); };
     el.onmouseenter = el.onfocus = () => hover(t, { x: x - 20, y: y - 22, w: 40, h: 0 });
     el.onmouseleave = el.onblur = () => hover(null);
     return el;
@@ -66,7 +66,7 @@ export function createHud({ name, onSettings, onDictionary, onNotebook, onToday,
         Object.assign(el.style, { left: pctX(b.x), top: pctY(b.y), width: pctX(b.w), height: pctY(b.h) });
         el.onmouseenter = el.onfocus = () => hover(t, b);
         el.onmouseleave = el.onblur = () => hover(null);
-        el.onclick = () => { hover(null); onTarget(t); };
+        el.onclick = () => { el.blur(); hover(null); onTarget(t); };
         labels.appendChild(el);
         if (t.kind === 'place') { el.tabIndex = -1; el.setAttribute('aria-hidden', 'true'); pins.push(pin(t, t.tag, t.pin.x, t.pin.y, now && now.place === t.id)); }
         if (t.kind === 'sign') pins.push(pin(t, t.sign.zh, b.x + b.w / 2, b.y, false));
