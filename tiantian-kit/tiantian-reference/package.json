@@ -1,0 +1,17 @@
+{
+  "name": "tiantian",
+  "version": "3.4.0",
+  "description": "Every day, a little Chinese.",
+  "main": "main.js",
+  "keywords": [],
+  "author": "calkusiakfilm",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.7.0",
+    "hanzi-writer": "^3.7.3",
+    "hanzi-writer-data": "^2.0.1"
+  },
+  "productName": "天天"
+}

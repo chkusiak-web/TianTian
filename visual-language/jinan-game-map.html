@@ -1,0 +1,336 @@
+<title>Jinan World Map</title>
+<style>
+/* Layout: the map is the page; a slim header and a toggle bar above it, notes below */
+:root{
+  --bg:#EEF3E6; --fg:#2A2622; --muted:#5F5A50; --panel:#FFFFFF; --line:#D5D9C8; --accent:#3A95BE;
+  --display:"Pixelify Sans", ui-monospace, monospace;
+  --body:"Atkinson Hyperlegible", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171A16;--fg:#ECEAE2;--muted:#A9A496;--panel:#22261F;--line:#363B31;--accent:#72CDE0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171A16;--fg:#ECEAE2;--muted:#A9A496;--panel:#22261F;--line:#363B31;--accent:#72CDE0;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1640px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:14px}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,3.4vw,36px);margin:0}
+.sub{color:var(--muted);margin:2px 0 0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--display);font-size:15px;background:var(--panel);color:var(--fg);border:2px solid var(--fg);padding:4px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroller{overflow:auto;border:4px solid var(--fg);background:#000;max-height:82vh}
+canvas{display:block;image-rendering:pixelated;width:100%;height:auto}
+.scroller.zoom canvas{width:3200px;max-width:none}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);padding:14px 16px;min-width:0}
+.card h2{font-family:var(--display);font-weight:600;font-size:17px;margin:0 0 6px}
+.card p,.card ul{margin:0;color:var(--muted)} .card ul{padding-left:18px}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Jinan, the game map</h1>
+    <p class="sub">Layout v0.2 · tourist-map distortion of real Jinan · 800 × 560 px drawn at native size</p>
+  </header>
+  <div class="bar">
+    <button id="b-labels" aria-pressed="true">Labels</button>
+    <button id="b-zoom" aria-pressed="false">Zoom ×4</button>
+    <button id="b-night" aria-pressed="false">Night</button>
+  </div>
+  <div class="scroller" id="sc"><canvas id="c" width="1600" height="1120" aria-label="Detailed pixel map of Jinan: Yellow River and farmland in the north, the moat ring around the old town with Daming Lake and spring quarter in the center, Qianfo Mountain and hills in the south"></canvas></div>
+  <div class="notes">
+    <section class="card"><h2>The stack</h2><p>River at the top, lake, springs, square, then mountains at the bottom. Real Jinan in that exact order.</p></section>
+    <section class="card"><h2>Inside the moat</h2><p>Six districts on foot. Canals run from the spring quarter into Daming Lake. Boats stop at three docks.</p></section>
+    <section class="card"><h2>Outside the moat</h2><p>Bus to Shandong University (east), the hospital and Jinan West Station (west). Walk south to Qianfo Mountain.</p></section>
+  </div>
+</div>
+
+<script>
+const N={w:800,h:560};
+const C={g0:"#C4E86E",g1:"#A8DC5A",g2:"#7CC23F",g3:"#4E9A33",g4:"#2E6B2C",f1:"#F6DA5C",f2:"#E8B93A",f3:"#C08A2C",
+ e1:"#E2CB98",e2:"#B99367",e3:"#7D5A3C",s0:"#FFFDF7",s1:"#F3EFE6",s2:"#C9C3B6",s3:"#8E8A82",w1:"#BDEBF2",w2:"#72CDE0",w3:"#3A95BE",w4:"#2A6F95",
+ r1:"#7D8A9C",r2:"#5C6A7E",r3:"#3E4858",red:"#C2573F",red2:"#9E4431",ln:"#2A2622",skin:"#F2C8A0",pink:"#F2A6B8",yr:"#D9B97A",yr2:"#C9A35E",brick:"#B5654A",teal:"#3E8C84"};
+const base=document.createElement("canvas");base.width=N.w;base.height=N.h;const x=base.getContext("2d");
+let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));const pick=a=>a[Math.floor(rnd()*a.length)];
+const R=(a,b,w,h,c)=>{x.fillStyle=c;x.fillRect(Math.round(a),Math.round(b),Math.round(w),Math.round(h))};
+const P=(a,b,c)=>R(a,b,1,1,c);
+const occ=new Uint8Array(N.w*N.h); // 1 = water/road/building, used to keep trees off things
+const mark=(a,b,w,h)=>{for(let j=Math.max(0,b|0);j<Math.min(N.h,b+h);j++)for(let i=Math.max(0,a|0);i<Math.min(N.w,a+w);i++)occ[j*N.w+i]=1};
+const free=(a,b,w,h)=>{for(let j=b;j<b+h;j++)for(let i=a;i<a+w;i++){if(i<0||j<0||i>=N.w||j>=N.h||occ[j*N.w+i])return false}return true};
+const shade=(a,b,w,h,al=.25)=>{x.globalAlpha=al;R(a,b,w,h,C.g4);x.globalAlpha=1};
+
+/* ---------- terrain ---------- */
+function grass(){R(0,0,N.w,N.h,C.g2);for(let i=0;i<9000;i++){const a=ri(0,N.w),b=ri(0,N.h);P(a,b,rnd()<.5?C.g1:C.g3)}}
+function yellowRiver(){
+  for(let i=0;i<N.w;i++){const y=30+7*Math.sin(i/70)+4*Math.sin(i/23);R(i,0,1,y,C.yr);P(i,y,C.e3);R(i,y+1,1,2,C.e1);mark(i,0,1,y+3)}
+  for(let k=0;k<120;k++){const a=ri(0,N.w),b=ri(3,24);R(a,b,ri(4,9),1,pick([C.e1,C.yr2]))}
+  // sandbars
+  [[120,14,40],[520,10,55]].forEach(([a,b,w])=>{R(a,b,w,4,C.e1);R(a+3,b-1,w-6,1,C.e1);R(a+2,b+4,w-4,1,C.e2)});
+  // bridge
+  R(430,0,8,40,C.s2);R(430,0,1,40,C.s1);R(437,0,1,40,C.s3);for(let j=2;j<34;j+=8){R(424,j,20,1,C.r3);R(433,j-6,2,6,C.r2)}
+  for(let k=0;k<4;k++){const a=ri(40,760),b=ri(6,22);if(Math.abs(a-433)<20)continue;R(a,b,7,3,C.e3);R(a+2,b-1,3,1,C.s1)}
+}
+function fields(a,b,w,h){
+  let yy=b;while(yy<b+h-4){let xx=a;const rh=ri(9,14);while(xx<a+w-6){const fw=ri(16,30);const ww=Math.min(fw,a+w-xx);
+    const col=pick([C.f1,C.f2,C.g1,C.g0,C.g3,C.e2,C.f1]);R(xx,yy,ww-2,rh-2,col);
+    const lc=col===C.e2?C.e3:col===C.g3?C.g4:col===C.f1?C.f2:col===C.f2?C.f3:C.g2;
+    if(rnd()<.5)for(let i=xx+1;i<xx+ww-2;i+=3)R(i,yy+1,1,rh-4,lc);else for(let j=yy+1;j<yy+rh-3;j+=3)R(xx+1,j,ww-4,1,lc);
+    R(xx,yy+rh-2,ww,1,C.e1);mark(xx,yy,ww,rh);xx+=fw}yy+=rh}
+}
+function hill(cx,cy,rx,ry,opt={}){
+  for(let j=-ry;j<=ry*0.35;j++)for(let i=-rx;i<=rx;i++){
+    const n=Math.sin(i*.35+cx)*1.5+Math.cos(j*.5+cy)*1.2; const d=(i*i)/(rx*rx)+(j*j)/(ry*ry);
+    if(d<=1+n*.02){const h=1-d;let c=h>.75?C.g1:h>.45?C.g2:h>.2?C.g3:C.g4; if(i>rx*.25&&h<.6)c=h>.3?C.g3:C.g4; if(i<-rx*.3&&h>.4)c=C.g1; P(cx+i,cy+j,c)}}
+  // contour hint and rocks
+  for(let k=0;k<rx*ry/90;k++){const t=rnd()*6.28,r=rnd()*.85;const a=cx+Math.cos(t)*rx*r,b=cy+Math.sin(t)*ry*r*.6-ry*.15;
+    if(rnd()<.12){R(a,b,3,2,C.s2);P(a,b,C.s1);P(a+2,b+1,C.s3)}}
+}
+function stream(pts,w=2,col=C.w2){for(let k=0;k<pts.length-1;k++){const [a,b]=pts[k],[c,d]=pts[k+1];const n=Math.max(Math.abs(c-a),Math.abs(d-b));
+  for(let t=0;t<=n;t++){const px=a+(c-a)*t/n,py=b+(d-b)*t/n;R(px,py,w,w,col);P(px,py-1,C.w3);mark(px-1,py-1,w+2,w+2)}}}
+function road(pts,w=4,col=C.s2){for(let k=0;k<pts.length-1;k++){const [a,b]=pts[k],[c,d]=pts[k+1];const n=Math.max(Math.abs(c-a),Math.abs(d-b));
+  for(let t=0;t<=n;t++){const px=a+(c-a)*t/n,py=b+(d-b)*t/n;R(px,py,w,w,col);mark(px-1,py-1,w+2,w+2)}}}
+function hroad(y,a,b,w=6){R(a,y,b-a,w,C.s2);R(a,y,b-a,1,C.s1);R(a,y+w-1,b-a,1,C.s3);for(let i=a;i<b;i+=8)R(i,y+(w>>1),4,1,C.s1);mark(a,y-1,b-a,w+2)}
+function vroad(xx,a,b,w=6){R(xx,a,w,b-a,C.s2);R(xx,a,1,b-a,C.s1);R(xx+w-1,a,1,b-a,C.s3);for(let j=a;j<b;j+=8)R(xx+(w>>1),j,1,4,C.s1);mark(xx-1,a,w+2,b-a)}
+function rail(y){R(0,y,N.w,5,C.e2);for(let i=0;i<N.w;i+=3)R(i,y,1,5,C.e3);R(0,y+1,N.w,1,C.s3);R(0,y+3,N.w,1,C.s3);mark(0,y-1,N.w,7)}
+function train(a,y,n=6){for(let k=0;k<n;k++){R(a+k*13,y-1,12,6,C.s1);R(a+k*13,y-1,12,1,C.s0);R(a+k*13,y+1,12,2,C.w3);R(a+k*13,y+4,12,1,C.r3)}R(a+n*13-2,y-1,3,6,C.red)}
+
+/* ---------- buildings ---------- */
+function house(a,b,w,rh,wh,o={}){
+  shade(a+w,b+2,2,rh+wh);shade(a+1,b+rh+wh,w,1);
+  const r=o.roof||C.r2,rd=o.roofD||C.r3,rl=o.roofL||C.r1;
+  R(a-1,b,w+2,rh,r);for(let j=b+1;j<b+rh;j+=2)R(a-1,j,w+2,1,rd);R(a-1,b,w+2,1,rl);
+  R(a,b+rh,w,wh,o.wall||C.s1);R(a,b+rh,w,1,C.s2);
+  if(wh>=3){for(let i=a+2;i<a+w-2;i+=4)P(i,b+rh+1+(wh>3?1:0),o.win||C.w3);if(o.door!==false)R(a+(w>>1),b+rh+wh-2,2,2,o.doorC||C.red)}
+  mark(a-1,b,w+3,rh+wh+1);
+}
+function courtyard(a,b){ // 22 x 20 siheyuan
+  R(a,b,22,20,C.s2);R(a+1,b+1,20,18,C.e1);
+  house(a+1,b+1,20,4,3);house(a+1,b+8,5,3,2,{door:false});house(a+16,b+8,5,3,2,{door:false});
+  R(a+1,b+17,20,2,C.s1);R(a+1,b+17,20,1,C.s2);R(a+9,b+16,4,3,C.red);P(a+10,b+16,C.f1);
+  if(rnd()<.6){R(a+8,b+10,6,5,C.g3);P(a+10,b+11,C.g1);P(a+11,b+12,C.g1)}else{R(a+9,b+11,4,3,C.w2);P(a+10,b+12,C.w1)}
+  mark(a,b,22,20);
+}
+function shopRow(a,b,n,o={}){
+  for(let k=0;k<n;k++){const w=ri(9,13);house(a,b,w,4,4,{roof:pick([C.r2,C.r2,C.red]),door:false,win:o.night?C.f1:C.w3});
+    for(let i=0;i<w;i+=2)R(a+i,b+8,2,1,i%4?C.s1:pick([C.red,C.teal,C.f2]));
+    if(o.lanterns&&k%2==0){P(a+1,b+9,C.red);P(a+w-2,b+9,C.red)}a+=w+1}
+}
+function block(a,b,w,h,o={}){ // modern block, flat roof
+  shade(a+w,b+2,3,h);shade(a+2,b+h,w,2);
+  const rh=Math.round(h*.45);R(a,b,w,rh,o.roof||C.s2);R(a,b,w,1,C.s0);R(a+2,b+2,4,3,C.s3);
+  R(a,b+rh,w,h-rh,o.wall||C.s1);R(a+w-1,b+rh,1,h-rh,C.s3);
+  for(let j=b+rh+1;j<b+h-1;j+=3)for(let i=a+1;i<a+w-1;i+=3)P(i,j,o.win||C.w3);
+  mark(a,b,w+3,h+2);
+}
+function campusBld(a,b,w){house(a,b,w,5,6,{roof:C.r2,wall:C.brick,win:C.s1,doorC:C.s1})}
+function tree(a,b,r=3,col){
+  if(!free(a-r,b-r,r*2+1,r*2+2))return false;
+  const c=col||[C.g1,C.g3,C.g4];shade(a-r+2,b+r-1,r*2+1,2,.4);
+  for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const d=i*i+j*j;if(d<=r*r+1){let cc=(i+j)<-r*.5?c[0]:(i+j)>r*.4?c[2]:c[1];if(d>r*r-r&&j>=0)cc=c[2];P(a+i,b+j,cc)}}
+  P(a,b+r+1,C.e3);mark(a-r,b-r,r*2+1,r*2+2);return true;
+}
+function willow(a,b){
+  if(!free(a-3,b-3,7,8))return false;shade(a-1,b+4,6,1,.3);
+  for(let i=-3;i<=3;i++){const L=3+((i+a)%3);for(let j=-2;j<L;j++)P(a+i,b+j,j<0?C.g1:(i%2?C.g3:C.g4))}
+  mark(a-3,b-3,7,8);return true;
+}
+function forest(a,b,w,h,n,cols){const pr=Math.min(1,n*36/(w*h));for(let gy=b;gy<b+h;gy+=6)for(let gx=a;gx<a+w;gx+=6)if(rnd()<pr)tree(gx+ri(-2,2),gy+ri(-2,2),ri(2,4),cols)}
+function pool(a,b,w,h){R(a,b,w,h,C.s2);R(a,b,w,1,C.s1);R(a,b+h-1,w,1,C.s3);R(a+1,b+1,w-2,h-2,C.w3);R(a+2,b+2,w-4,h-3,C.w2);
+  for(let k=0;k<w*h/30;k++)R(a+ri(3,w-5),b+ri(3,h-3),2,1,C.w1);mark(a,b,w,h)}
+function springBubble(a,b){P(a,b,C.w1);P(a-1,b,C.w1);P(a+1,b,C.w1);P(a,b-1,C.w1);P(a,b+1,C.w1)}
+function pavilion(a,b,o={}){shade(a+7,b+2,2,8);R(a-1,b,9,3,o.roof||C.teal);R(a-1,b,9,1,C.g1);P(a-2,b+2,o.roof||C.teal);P(a+8,b+2,o.roof||C.teal);
+  R(a,b+3,1,4,C.red);R(a+6,b+3,1,4,C.red);R(a,b+7,7,1,C.s2);mark(a-2,b,11,8)}
+function boat(a,b){R(a,b,7,2,C.e3);R(a+1,b+2,5,1,C.e3);R(a+2,b-2,3,2,C.s1);P(a+2,b-2,C.red)}
+function people(a,b){P(a,b,C.skin);P(a,b+1,pick([C.red,C.w3,C.f2,C.teal,C.s0,C.r2]));P(a,b+2,C.r3)}
+function car(a,b,h=true){const c=pick([C.red,C.w3,C.s0,C.f2,C.teal,C.r2]);if(h){R(a,b,6,3,c);R(a+2,b,2,1,C.w1)}else{R(a,b,3,6,c);R(a,b+2,3,1,C.w1)}}
+
+/* ---------- landmarks ---------- */
+function chaoranTower(a,b){ // 超然楼
+  shade(a+16,b+6,4,30);
+  R(a-2,b+30,20,5,C.s2);R(a-2,b+30,20,1,C.s1);
+  for(let t=0;t<4;t++){const y=b+t*7,w=16-t*2,o=t;R(a+o-2,y,w+4,3,C.r2);R(a+o-2,y,w+4,1,C.r1);P(a+o-3,y+2,C.r2);P(a+o+w+2,y+2,C.r2);R(a+o,y+3,w,4,C.red);for(let i=a+o+1;i<a+o+w-1;i+=3)P(i,y+4,C.f1)}
+  R(a+6,b+28,4,6,C.red2);R(a+7,b-4,2,4,C.f2);mark(a-3,b-4,23,40);
+}
+function jiefangge(a,b){ // 解放阁
+  R(a,b+8,26,12,C.s3);R(a,b+8,26,1,C.s2);for(let j=b+10;j<b+20;j+=3)R(a,j,26,1,C.s2);
+  R(a+5,b,16,3,C.r2);R(a+5,b,16,1,C.r1);R(a+6,b+3,14,5,C.red);for(let i=a+8;i<a+19;i+=3)P(i,b+5,C.f1);mark(a,b,27,21)
+}
+function quanbiao(a,b){ // spring emblem sculpture
+  R(a-1,b+16,8,3,C.s3);for(let j=0;j<16;j++){const o=Math.round(Math.sin(j/2.5)*2);R(a+2+o,b+j,3,1,j<4?C.w1:C.w3)}R(a,b-2,7,3,C.w3);R(a+1,b-3,5,1,C.w1);mark(a-1,b-3,9,22)
+}
+function temple(a,b){
+  R(a-4,b+12,34,4,C.s2);R(a-4,b+12,34,1,C.s1);
+  R(a,b,26,4,C.f2);R(a,b,26,1,C.f1);P(a-1,b+3,C.f2);P(a+26,b+3,C.f2);R(a+1,b+4,24,8,C.red);for(let i=a+3;i<a+24;i+=4)R(i,b+6,2,4,C.red2);R(a+11,b+8,4,4,C.red2);
+  R(a+30,b+2,10,3,C.r2);R(a+31,b+5,8,6,C.red);mark(a-4,b,45,17)
+}
+function cableCar(a,b,c,d){const n=Math.max(Math.abs(c-a),Math.abs(d-b));for(let t=0;t<=n;t++)P(a+(c-a)*t/n,b+(d-b)*t/n,C.r3);
+  for(let k=1;k<4;k++){const px=a+(c-a)*k/4,py=b+(d-b)*k/4;R(px-1,py+1,3,3,C.red);P(px,py,C.r3)}}
+function stadium(a,b){R(a,b,40,26,C.red2);R(a+1,b+1,38,24,C.red);R(a+5,b+5,30,16,C.g2);for(let i=a+7;i<a+33;i+=4)R(i,b+5,2,16,C.g1);R(a,b,40,1,C.s1);mark(a,b,40,26)}
+function station(a,b){ // 济南西站
+  shade(a+60,b+4,4,26);R(a,b,60,12,C.s2);R(a,b,60,1,C.s0);for(let i=a+2;i<a+58;i+=6)R(i,b+2,3,8,C.s1);
+  R(a,b+12,60,14,C.w2);for(let i=a+1;i<a+59;i+=4)R(i,b+13,1,12,C.w3);R(a,b+24,60,2,C.s3);R(a+26,b+18,8,8,C.r3);mark(a,b,64,27);
+  R(a-6,b+28,72,12,C.s1);for(let i=a-4;i<a+64;i+=8)R(i,b+30,4,4,C.g3);mark(a-6,b+28,72,12)
+}
+function hospital(a,b){block(a,b,40,30,{roof:C.s1,wall:C.s0});R(a+16,b+4,8,8,C.s0);R(a+19,b+5,2,6,C.g3);R(a+17,b+7,6,2,C.g3);block(a+44,b+8,20,22)}
+function monument(a,b){R(a-3,b+20,9,3,C.s3);R(a,b,3,20,C.s1);R(a+2,b,1,20,C.s2);P(a+1,b-1,C.s1);mark(a-3,b-1,10,24)}
+
+/* ---------- compose ---------- */
+function draw(night){
+  seed=11;occ.fill(0);
+  grass();yellowRiver();
+  // northern farmland and villages
+  fields(8,44,180,62);fields(250,40,150,66);fields(470,42,90,64);fields(690,40,104,66);
+  hill(205,72,26,22);hill(625,74,30,24); // 鹊山, 华不注山
+  pool(598,94,14,6);pool(640,92,12,6); // ponds around 华不注
+  for(let k=0;k<6;k++){house(410+k*9,60+(k%2)*10,7,3,2);house(565+k%3*9,48+((k/3)|0)*12,7,3,2)}
+  rail(112);train(470,112,7);
+  stream([[0,128],[180,124],[330,130],[520,124],[800,130]],2); // 小清河
+  // outer road grid
+  hroad(138,0,800,5);hroad(468,0,800,7);vroad(176,138,470,5);vroad(620,138,470,5);
+  road([[0,200],[60,196],[176,196]],4);road([[90,138],[90,468]],4);road([[620,300],[800,300]],4);road([[700,138],[700,468]],4);
+  for(let k=0;k<26;k++){car(ri(0,790),470,true)}for(let k=0;k<6;k++)car(ri(0,790),139,true);for(let k=0;k<6;k++)car(177,ri(150,460),false);for(let k=0;k<6;k++)car(621,ri(150,460),false);
+  // west: station, hospital, apartments
+  station(14,150);train(0,186,5);
+  hospital(24,300);
+  for(let j=0;j<3;j++)for(let i=0;i<2;i++)if(!(j==2&&i==0))block(100+i*36,206+j*30,26,22,{win:night?C.f1:C.w3});
+  for(let j=0;j<2;j++)for(let i=0;i<3;i++)block(10+i*26,220+j*36,20,24,{win:night?C.f1:C.w3});
+  for(let i=0;i<4;i++)block(6+i*42,382,32,26,{win:night?C.f1:C.w3});
+  for(let i=0;i<3;i++)block(100+i*24,420,18,20,{win:night?C.f1:C.w3});
+  // east: Shandong University
+  R(630,150,166,150,C.g1);R(632,152,162,146,C.g2);mark(630,150,0,0);
+  for(let j=0;j<3;j++)for(let i=0;i<3;i++)campusBld(640+i*30,160+j*26,24);
+  stadium(735,166);house(740,212,48,6,10,{roof:C.r2,wall:C.brick,win:C.s1,doorC:C.s1});R(700,276,26,3,C.s2);R(708,268,10,8,C.red);
+  for(let j=0;j<4;j++)for(let i=0;i<3;i++)block(632+i*56,310+j*38,44,26,{win:night?C.f1:C.w3});
+  // ---- moat ring ----
+  const X0=200,Y0=150,X1=600,Y1=452,RW=10;
+  x.fillStyle=C.w2;x.beginPath();x.roundRect(X0,Y0,X1-X0,Y1-Y0,40);x.fill();
+  x.fillStyle=C.s2;x.beginPath();x.roundRect(X0+RW,Y0+RW,X1-X0-RW*2,Y1-Y0-RW*2,32);x.fill();
+  x.fillStyle=C.g2;x.beginPath();x.roundRect(X0+RW+2,Y0+RW+2,X1-X0-RW*2-4,Y1-Y0-RW*2-4,30);x.fill();
+  mark(X0,Y0,X1-X0,RW+2);mark(X0,Y1-RW-2,X1-X0,RW+2);mark(X0,Y0,RW+2,Y1-Y0);mark(X1-RW-2,Y0,RW+2,Y1-Y0);
+  for(let k=0;k<160;k++){const t=rnd();const side=ri(0,3);let px,py;if(side==0){px=X0+40+t*(X1-X0-80);py=Y0+ri(2,7)}else if(side==1){px=X0+40+t*(X1-X0-80);py=Y1-ri(3,8)}else if(side==2){px=X0+ri(2,7);py=Y0+40+t*(Y1-Y0-80)}else{px=X1-ri(3,8);py=Y0+40+t*(Y1-Y0-80)}R(px,py,ri(2,4),1,C.w1)}
+  // Daming Lake
+  const L={a:236,b:172,w:330,h:96};
+  x.fillStyle=C.w2;x.beginPath();x.ellipse(L.a+L.w/2,L.b+L.h/2,L.w/2,L.h/2,0,0,7);x.fill();
+  x.strokeStyle=C.w3;x.lineWidth=1;x.beginPath();x.ellipse(L.a+L.w/2,L.b+L.h/2,L.w/2-.5,L.h/2-.5,0,0,7);x.stroke();
+  mark(L.a,L.b,L.w,L.h);
+  for(let k=0;k<120;k++){const t=rnd()*6.28,r=rnd()*.9;R(L.a+L.w/2+Math.cos(t)*L.w/2*r,L.b+L.h/2+Math.sin(t)*L.h/2*r,ri(2,5),1,C.w1)}
+  // lotus beds
+  [[260,232,40,22],[460,236,46,18],[300,186,30,12]].forEach(([a,b,w,h])=>{for(let k=0;k<w*h/6;k++){const px=a+ri(0,w),py=b+ri(0,h);R(px,py,2,1,C.g3);if(rnd()<.2)P(px,py-1,C.pink)}});
+  // island with 历下亭
+  x.fillStyle=C.g2;x.beginPath();x.ellipse(372,218,16,9,0,0,7);x.fill();R(358,224,28,2,C.s2);pavilion(368,209,{roof:C.teal});tree(360,216,2);tree(384,216,2);
+  // long bridge to island
+  R(372,226,3,32,C.s1);R(372,226,1,32,C.s0);R(374,226,1,32,C.s3);
+  chaoranTower(520,186);
+  for(const [a,b] of [[290,210],[440,200],[330,250],[500,250],[415,236]])boat(a,b);
+  // north shore park
+  forest(240,158,320,10,40);
+  // canals from spring quarter into lake
+  const canal=(cx,a,b)=>{R(cx,a,5,b-a,C.w2);R(cx,a,1,b-a,C.w3);R(cx-2,a,2,b-a,C.s1);R(cx+5,a,2,b-a,C.s2);mark(cx-3,a,11,b-a)};
+  canal(398,262,330);canal(470,264,318);canal(300,262,300);
+  // 泉城路 main street + lanes
+  hroad(372,212,588,7);vroad(340,272,440,4);vroad(436,272,372,3);vroad(520,272,440,4);
+  for(let k=0;k<30;k++)people(ri(214,584),ri(372,377));
+  // 芙蓉街 shop lane (west of 340 lane)
+  for(let j=0;j<5;j++){shopRow(320,276+j*18,2,{lanterns:true,night})}
+  for(let k=0;k<14;k++)people(ri(341,343),ri(276,368));
+  // courtyard grid (spring quarter + elsewhere inside)
+  const cells=[];for(let by=274;by<440;by+=22)for(let bx=214;bx<590;bx+=24)cells.push([bx,by]);
+  // reserved zones
+  const zones=[[214,300,80,70],[214,382,84,60],[384,292,36,26],[300,262,14,40],[392,262,14,70],[464,262,14,58],[318,274,22,94],
+               [470,382,110,58],[536,410,60,40],[316,386,150,58],[212,272,60,26]];
+  const inZone=(a,b)=>zones.some(([zx,zy,zw,zh])=>a+22>zx&&a<zx+zw&&b+20>zy&&b<zy+zh);
+  // parks first so courtyards avoid them
+  // 五龙潭 park
+  R(214,300,80,70,C.g1);pool(232,312,36,22);for(let k=0;k<5;k++)springBubble(ri(238,262),ri(318,330));pavilion(276,318);boat(244,322);mark(214,300,80,70);
+  // 趵突泉 park
+  R(214,382,84,60,C.g1);pool(226,394,42,26);springBubble(238,406);springBubble(247,406);springBubble(256,406);
+  R(237,404,3,3,C.w1);R(246,403,3,4,C.w1);R(255,404,3,3,C.w1);pavilion(272,394,{roof:C.r2});house(276,422,18,4,4);mark(214,382,84,60);
+  // 珍珠泉 walled garden
+  R(384,292,36,26,C.s2);R(386,294,32,22,C.g1);pool(392,298,20,12);springBubble(400,303);springBubble(405,305);mark(384,292,36,26);
+  for(const [a,b] of cells){if(inZone(a,b)||!free(a,b,22,20))continue;courtyard(a,b)}
+  // 宽厚里: pedestrian block with lanterns
+  for(let j=0;j<2;j++)shopRow(474,386+j*20,8,{lanterns:true,night});
+  for(let k=0;k<20;k++)people(ri(474,576),ri(398,402));
+  // 黑虎泉 on moat edge
+  R(574,430,18,8,C.s3);for(let i=0;i<3;i++){R(576+i*5,431,3,3,C.r3);P(577+i*5,434,C.w1);P(577+i*5,435,C.w1)}
+  // 泉城广场
+  R(316,386,150,58,C.s1);R(316,386,150,1,C.s0);for(let i=318;i<466;i+=10)R(i,388,1,54,C.s2);for(let j=396;j<444;j+=10)R(318,j,146,1,C.s2);
+  R(330,396,36,14,C.g1);R(416,396,36,14,C.g1);R(330,424,36,14,C.g1);R(416,424,36,14,C.g1);
+  pool(376,420,30,10);quanbiao(387,396);mark(316,386,150,58);
+  for(let k=0;k<26;k++)people(ri(318,462),ri(412,440));
+  // 解放阁 on SE corner
+  jiefangge(560,440);
+  // trees and willows inside
+  for(let k=0;k<400;k++){const a=ri(216,584),b=ri(266,446);willow(a,b)||tree(a,b,3)}
+  // willows along moat banks (both sides)
+  for(let t=0;t<1;t+=.012){const a=X0+30+t*(X1-X0-60);willow(a,Y0-5);willow(a,Y1+4);willow(a,Y0+RW+6);willow(a,Y1-RW-9)}
+  for(let t=0;t<1;t+=.02){const b=Y0+30+t*(Y1-Y0-60);willow(X0-5,b);willow(X1+4,b);willow(X0+RW+6,b);willow(X1-RW-9,b)}
+  // docks + boats on moat
+  for(const [a,b] of [[X0+1,330],[X0+1,240],[528,Y0+1]]){R(a,b,8,4,C.e3);R(a,b,8,1,C.e2);boat(a+(a<300?0:10),b+(a<300?8:0))}
+  boat(X0+2,280);boat(X1-9,300);boat(420,Y1-7);boat(300,Y0+3);
+  // bridges where roads cross the moat
+  for(const yy of [372])for(const xx of [X0,X1-RW]){R(xx-2,yy-1,RW+4,9,C.s1);R(xx-2,yy-1,RW+4,1,C.s0);R(xx-2,yy+7,RW+4,1,C.s3)}
+  hroad(372,176,212,7);hroad(372,588,624,7);
+  // ---- south ----
+  hill(470,532,120,70,{});hill(250,540,70,46);hill(80,548,90,40);hill(700,546,110,46);
+  hill(560,566,90,40);hill(360,568,80,34);
+  road([[440,476],[470,486],[446,494],[476,502],[452,510],[478,516]],2,C.e1);
+  temple(478,496);monument(250,500);
+  forest(330,478,300,90,600,[C.g2,C.g3,C.g4]);forest(160,500,170,60,200,[C.g2,C.g3,C.g4]);forest(0,512,160,50,160,[C.g2,C.g3,C.g4]);forest(600,500,200,60,260,[C.g2,C.g3,C.g4]);
+  forest(170,48,60,40,30);forest(590,52,70,40,40);
+  // cable car up 千佛山
+  cableCar(530,476,512,500);R(528,474,6,4,C.s3);
+  // bus stops
+  for(const [a,b] of [[600,374],[186,374],[186,300],[700,296]]){R(a,b,6,4,C.f2);R(a,b,6,1,C.f1);P(a+2,b+4,C.r3)}
+  // scattered trees in leftover land
+  for(let k=0;k<2200;k++){tree(ri(0,800),ri(40,470),ri(3,4))}
+  for(let k=0;k<40;k++)people(ri(0,800),ri(140,470));
+}
+
+/* ---------- labels and output ---------- */
+const out=document.getElementById("c"),o=out.getContext("2d");
+const labels=[
+  {n:"1",zh:"趵突泉",en:"Baotu Spring",x:216,y:440},
+  {n:"2",zh:"芙蓉街",en:"Furong Street",x:300,y:262},
+  {n:"3",zh:"大明湖",en:"Daming Lake",x:300,y:180},
+  {n:"4",zh:"泉城广场",en:"Quancheng Square",x:318,y:446},
+  {n:"5",zh:"千佛山",en:"Qianfo Mountain",x:500,y:520},
+  {n:"6",zh:"济南西站",en:"Jinan West Station",x:14,y:150},
+  {n:"7",zh:"曲水亭街",en:"Qushuiting Street (home)",x:404,y:268},
+  {n:"8",zh:"山东大学",en:"Shandong University",x:640,y:240},
+  {n:"9",zh:"宽厚里",en:"Kuanhouli",x:500,y:376},
+  {n:"10",zh:"省立医院",en:"Provincial Hospital",x:24,y:338},
+];
+const marks=[
+  {zh:"黄河",en:"Yellow River",x:600,y:4},{zh:"鹊山",en:"Que Hill",x:180,y:96},{zh:"华不注山",en:"Huabuzhu Hill",x:600,y:100},
+  {zh:"超然楼",en:"Chaoran Tower",x:540,y:166},{zh:"五龙潭",en:"Five Dragon Pool",x:216,y:304},{zh:"珍珠泉",en:"Pearl Spring",x:384,y:318},
+  {zh:"黑虎泉",en:"Black Tiger Spring",x:556,y:424},{zh:"解放阁",en:"Jiefang Pavilion",x:540,y:462},{zh:"英雄山",en:"Yingxiong Hill",x:230,y:524},
+  {zh:"护城河",en:"Moat (boats)",x:210,y:196},{zh:"泉城路",en:"Quancheng Road",x:440,y:358}
+];
+let showLabels=true,night=false;
+function tag(px,py,t){
+  const big=!!t.n;const S=2;let X=px*S,Y=py*S;
+  o.font=`${big?"bold 22px":"16px"} "PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif`;const zw=o.measureText(t.zh).width;
+  o.font=`${big?"14px":"12px"} "Pixelify Sans",ui-monospace,monospace`;const ew=o.measureText(t.en).width;
+  const nw=big?26:0;const w=Math.max(zw,ew)+16+nw,h=big?50:38;
+  X=Math.min(X,1600-w-6);Y=Math.max(4,Math.min(Y,1120-h-6));
+  o.fillStyle=C.ln;o.fillRect(X+3,Y+3,w,h);o.fillStyle=C.s0;o.fillRect(X,Y,w,h);o.strokeStyle=C.ln;o.lineWidth=2;o.strokeRect(X+1,Y+1,w-2,h-2);
+  if(big){o.fillStyle=C.red;o.fillRect(X,Y,nw,h);o.fillStyle=C.s0;o.font='bold 16px "Pixelify Sans",monospace';o.textAlign="center";o.fillText(t.n,X+nw/2,Y+h/2+6);o.textAlign="left"}
+  o.fillStyle=C.ln;o.font=`${big?"bold 22px":"16px"} "PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif`;o.fillText(t.zh,X+nw+8,Y+(big?25:19));
+  o.fillStyle=C.e3;o.font=`${big?"14px":"12px"} "Pixelify Sans",ui-monospace,monospace`;o.fillText(t.en,X+nw+8,Y+(big?43:33));
+}
+function render(){
+  draw(night);
+  o.imageSmoothingEnabled=false;o.drawImage(base,0,0,1600,1120);
+  if(night){o.globalCompositeOperation="multiply";o.fillStyle="#3B4A80";o.fillRect(0,0,1600,1120);o.globalCompositeOperation="lighter";
+    // window and lantern glow: re-draw warm pixels
+    const d=x.getImageData(0,0,N.w,N.h).data;o.fillStyle="rgba(246,218,92,.55)";
+    for(let j=0;j<N.h;j++)for(let i=0;i<N.w;i++){const k=(j*N.w+i)*4;if((d[k]===0xF6&&d[k+1]===0xDA)||(d[k]===0xC2&&d[k+1]===0x57&&j>260&&j<420))o.fillRect(i*2-1,j*2-1,4,4)}
+    o.globalCompositeOperation="source-over"}
+  if(showLabels){marks.forEach(t=>tag(t.x,t.y,t));labels.forEach(t=>tag(t.x,t.y,t))}
+}
+const btn=(id,f)=>document.getElementById(id).addEventListener("click",e=>{const b=e.currentTarget;const v=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",v);f(v)});
+btn("b-labels",v=>{showLabels=v;render()});btn("b-night",v=>{night=v;render()});
+btn("b-zoom",v=>{document.getElementById("sc").classList.toggle("zoom",v)});
+render();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(render);
+</script>

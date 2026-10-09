@@ -1,0 +1,484 @@
+<title>天天 Design Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700&family=Pixelify+Sans:wght@400;600;700&family=ZCOOL+QingKe+HuangYou&display=swap">
+<style>
+/* Layout: a single column of 16:9 desktop frames (1280×720 target), each followed by short notes. Page is a dark bezel so the sunny frames read as screens. */
+:root{
+  --bezel:#1c2232; --bezel-2:#262e42; --text:#e8ecf4; --mute:#9aa5bd;
+  --red:#d9342b; --red-dk:#6e1a17; --gold:#f2c14e; --sky:#4fb6ec; --lime:#b9d65c;
+  --cream:#f6ecd2; --ink:#2b2118; --ribbon:#5a1f22; --teal:#2fa8a8;
+  --f-px:"Pixelify Sans",ui-monospace,monospace;
+  --f-hanpx:"ZCOOL QingKe HuangYou","Noto Sans SC",sans-serif;
+  --f-han:"Noto Sans SC","PingFang SC",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bezel);color:var(--text)}
+body{font-family:var(--f-px);padding-inline:16px;padding-block:28px 60px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+header h1{font-family:var(--f-hanpx);font-weight:400;font-size:44px;margin:0;color:var(--gold);letter-spacing:.04em}
+header h1 span{font-family:var(--f-px);font-size:20px;color:var(--mute);margin-left:10px;letter-spacing:0}
+header p{margin:8px 0 0;max-width:68ch;color:var(--mute);font-size:15px;line-height:1.5}
+.rules{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.rules span{border:2px solid var(--bezel-2);background:#151a27;padding:4px 10px;font-size:13px}
+.rules b{color:var(--gold);font-weight:600}
+section{display:flex;flex-direction:column;gap:12px}
+.label{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.label .n{font-size:13px;color:var(--gold);border:2px solid var(--gold);padding:1px 7px}
+.label h2{margin:0;font-weight:600;font-size:20px}
+.screen{border:6px solid #0d111a;box-shadow:0 0 0 2px var(--bezel-2),0 18px 40px rgba(0,0,0,.45);overflow-x:auto}
+.frame{position:relative;width:100%;min-width:640px;aspect-ratio:16/9;container-type:inline-size;overflow:hidden;background:#000}
+.frame>canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.notes div{background:#151a27;border-left:4px solid var(--teal);padding:8px 12px;font-size:13.5px;line-height:1.5;color:#cfd6e4}
+.notes b{color:var(--text)}
+
+/* shared in-frame UI, sized in container units so it scales with the frame */
+.abs{position:absolute}
+.pxbox{background:var(--cream);color:var(--ink);border:.35cqw solid var(--ink);box-shadow:0 0 0 .35cqw var(--cream),0 .6cqw 0 .35cqw rgba(0,0,0,.35)}
+.han{font-family:var(--f-han)}
+
+/* Title */
+.ribbon{font-family:var(--f-hanpx);background:var(--ribbon);color:var(--cream);padding:.3cqw 2.2cqw;font-size:2.3cqw;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%);white-space:nowrap}
+.menu{left:39%;top:62%;display:flex;flex-direction:column;gap:.6cqw}
+.menu div{display:flex;align-items:center;gap:1.2cqw;font-size:2.6cqw;color:#fff;text-shadow:.25cqw .25cqw 0 #2a3b1c}
+.menu div.dim{color:#d8eec6;opacity:.85;padding-left:3.4cqw}
+.menu canvas{width:2.2cqw;image-rendering:pixelated}
+.menu small{font-family:var(--f-hanpx);font-size:1.7cqw;opacity:.9}
+.press{left:50%;bottom:3%;transform:translateX(-50%);font-size:1.4cqw;color:#fff;text-shadow:.2cqw .2cqw 0 #2a3b1c;animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* Map */
+.mrib{font-family:var(--f-hanpx);font-size:1.75cqw;background:var(--ribbon);color:var(--cream);padding:.1cqw 1.3cqw;clip-path:polygon(0 0,100% 0,94% 50%,100% 100%,0 100%,6% 50%);white-space:nowrap;transform:translate(-50%,0) rotate(var(--r,0deg));cursor:default}
+.mrib.lock{background:#6d6a62;color:#e5e0d2}
+.mrib.done{background:#a32a22}
+.mrib.next{background:#1f5f6a;outline:.25cqw solid var(--gold);outline-offset:.15cqw}
+.hud{right:1.6%;top:3%;bottom:3%;width:23%;padding:1.2cqw;display:flex;flex-direction:column;gap:.9cqw;font-size:1.25cqw}
+.hud .k{font-size:1.05cqw;color:#8a7650;letter-spacing:.08em;text-transform:uppercase}
+.hud .t{font-family:var(--f-hanpx);font-size:2.6cqw;line-height:1}
+.hud .q{font-size:1.25cqw;line-height:1.35}
+.bar{height:1cqw;border:.25cqw solid var(--ink);background:#e5d8b5;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--gold)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:.6cqw}
+.stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:.4cqw}
+.stamps span{aspect-ratio:1;border:.2cqw dashed #c4b38a;display:grid;place-items:center;font-family:var(--f-hanpx);font-size:1.1cqw;color:#c4b38a}
+.stamps span.on{border:.25cqw solid var(--red);color:var(--red);transform:rotate(-6deg)}
+.btn{font-family:var(--f-px);font-size:1.3cqw;background:var(--red);color:#fff;border:.25cqw solid var(--ink);box-shadow:0 .35cqw 0 var(--ink);padding:.5cqw .8cqw;text-align:center}
+.btn.alt{background:var(--cream);color:var(--ink)}
+.keys{font-size:1cqw;color:#8a7650}
+.keys b{display:inline-block;border:.15cqw solid #8a7650;padding:0 .35cqw;margin-right:.2cqw;color:var(--ink);font-weight:600}
+
+/* District */
+.tophud{left:1.5%;top:2.5%;display:flex;gap:.8cqw;font-size:1.25cqw}
+.pill{background:rgba(27,20,16,.82);color:#fff;padding:.4cqw .9cqw;border:.2cqw solid #000;display:flex;gap:.6cqw;align-items:center}
+.pill b{color:var(--gold)}
+.pill .g{color:#7fe3ee}
+.clues{right:1.5%;top:2.5%;width:20%;padding:.8cqw 1cqw;font-size:1.15cqw;display:flex;flex-direction:column;gap:.3cqw}
+.clues .k{font-size:1cqw;color:#8a7650;letter-spacing:.08em;text-transform:uppercase}
+.clues div{display:flex;gap:.6cqw;align-items:center}
+.clues .x{width:1.1cqw;height:1.1cqw;border:.2cqw solid var(--ink);display:inline-block}
+.clues .x.on{background:#3f8f55}
+.dlg{left:1.5%;right:1.5%;bottom:2.5%;height:34%;display:grid;grid-template-columns:auto 1fr 31%;gap:1.4cqw;padding:1.1cqw 1.4cqw}
+.portrait{display:flex;flex-direction:column;align-items:center;gap:.3cqw}
+.portrait canvas{width:9cqw;height:9cqw;image-rendering:pixelated;border:.3cqw solid var(--ink);background:#9fd3e6}
+.portrait span{font-family:var(--f-hanpx);font-size:1.7cqw}
+.say{display:flex;flex-direction:column;gap:.5cqw;min-width:0}
+.say .zh{font-size:3cqw;line-height:1.5;position:relative}
+.w{position:relative;cursor:pointer;padding:0 .1cqw;border-bottom:.2cqw dotted transparent}
+.w:hover,.w.demo-hover{background:#ffe08a;border-bottom-color:#8a7650}
+.w.demo-click,.w.clicked{background:#bfe3ff}
+.py{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-.3cqw);background:var(--ink);color:#ffe08a;font-family:var(--f-px);font-size:1.4cqw;padding:.1cqw .6cqw;white-space:nowrap;pointer-events:none;display:none;line-height:1.4}
+.w:hover .py,.w.demo-hover .py{display:block}
+.encard{display:flex;gap:1cqw;align-items:baseline;background:var(--ink);color:var(--cream);padding:.4cqw .9cqw;font-size:1.35cqw;width:max-content;max-width:100%}
+.encard b{font-family:var(--f-han);font-size:1.8cqw;color:#bfe3ff}
+.encard i{font-style:normal;color:#ffe08a}
+.hint{font-size:1.05cqw;color:#8a7650}
+.asks{display:flex;flex-direction:column;gap:.35cqw;border-left:.25cqw dashed #c4b38a;padding-left:1.2cqw}
+.asks .k{font-size:1cqw;color:#8a7650;letter-spacing:.08em;text-transform:uppercase}
+.ask{display:flex;gap:.7cqw;align-items:center;font-family:var(--f-han);font-size:1.5cqw;background:#fffaf0;border:.2cqw solid var(--ink);padding:.1cqw .8cqw;box-shadow:0 .25cqw 0 var(--ink)}
+.ask small{font-family:var(--f-px);font-size:1cqw;color:#8a7650}
+.ask .gem{margin-left:auto;font-family:var(--f-px);font-size:1cqw;background:#7fe3ee;padding:0 .4cqw}
+.ask.sel{background:#fff1c9}
+.ask.lock{opacity:.5;border-style:dashed;box-shadow:none;font-family:var(--f-px);font-size:1.15cqw}
+
+/* Quiz */
+.qcard{left:50%;top:50%;transform:translate(-50%,-52%);width:54%;padding:1.6cqw 2cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;text-align:center}
+.qcard .k{font-size:1.1cqw;color:#8a7650;letter-spacing:.1em;text-transform:uppercase}
+.qcard h3{margin:0;font-family:var(--f-hanpx);font-weight:400;font-size:3cqw}
+.segs{display:grid;grid-template-columns:repeat(12,1fr);gap:.35cqw;width:100%}
+.segs i{height:1.2cqw;border:.2cqw solid var(--ink);background:#e5d8b5}
+.segs i.ok{background:#4caf62}
+.segs i.cur{background:var(--gold);animation:blink 1s steps(2) infinite}
+.qcard .big{font-family:var(--f-han);font-size:5cqw;line-height:1.1}
+.qcard .prompt{font-size:1.4cqw}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:.7cqw;width:100%}
+.qopts div{background:#fffaf0;border:.25cqw solid var(--ink);box-shadow:0 .3cqw 0 var(--ink);padding:.6cqw;font-size:1.5cqw}
+.qopts div.sel{background:#fff1c9}
+.rule{font-size:1.15cqw;color:var(--red);display:flex;align-items:center;gap:.5cqw}
+.qside{left:2%;top:4%;width:21%;padding:1cqw;font-size:1.1cqw;display:flex;flex-direction:column;gap:.4cqw}
+.qside .k{font-size:1cqw;color:#8a7650;letter-spacing:.08em;text-transform:uppercase}
+.qside div.r{display:flex;justify-content:space-between}
+.reward{right:2%;top:4%;width:20%;padding:1cqw;font-size:1.1cqw;display:flex;flex-direction:column;gap:.5cqw;align-items:center;text-align:center}
+.reward canvas{width:6cqw;image-rendering:pixelated}
+.desk{max-width:68ch;background:#151a27;border:2px solid var(--bezel-2);padding:14px 16px;font-size:14px;line-height:1.55;color:#cfd6e4}
+.desk h3{margin:0 0 6px;font-size:15px;color:var(--gold);font-weight:600}
+.desk ul{margin:0;padding-left:18px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>天天 <span>Design mockups · desktop 1280×720</span></h1>
+  <p>Four screens in a sunny pixel style: Mob Psycho's title screen and colors, the storybook map's layout and ribbon labels, and the farmland's ¾ top-down pixel terrain. These are still images except for the dialogue in screen 3. Hover a word there to see its pinyin and click it to see the English.</p>
+  <div class="rules"><span><b>Text</b> characters only</span><span><b>Hover</b> shows pinyin</span><span><b>Click</b> shows English</span><span><b>Locked rooms</b> open with a perfect review</span></div>
+</header>
+
+<section>
+  <div class="label"><span class="n">1</span><h2>Title screen</h2></div>
+  <div class="screen"><div class="frame" id="f1"><canvas width="320" height="180"></canvas>
+    <div class="abs ribbon" style="left:50%;top:43.5%;transform:translateX(-50%)">济南 · 泉水 的 秘密</div>
+    <div class="abs menu">
+      <div><canvas width="12" height="14" class="drop"></canvas>Start Game <small>开始</small></div>
+      <div class="dim">Continue <small>继续</small></div>
+      <div class="dim">Options <small>设置</small></div>
+    </div>
+    <div class="abs press">↑ ↓ to choose · Enter to start</div>
+  </div></div>
+  <div class="notes">
+    <div><b>From Mob Psycho:</b> a chunky red 天天 logo with a dark 3D edge, a bright banded sky, and soft pixel clouds.</div>
+    <div><b>Mascot as the cursor:</b> 泉泉, a little spring-water drop, points at the selected menu item and bobs.</div>
+    <div><b>Story hook:</b> the ribbon reads "Jinan · the springs' secret", and your character runs up the stairs toward the city.</div>
+  </div>
+</section>
+
+<section>
+  <div class="label"><span class="n">2</span><h2>City map</h2></div>
+  <div class="screen"><div class="frame" id="f2"><canvas width="320" height="180"></canvas>
+    <div id="ribbons"></div>
+    <div class="abs pxbox hud">
+      <div class="k">Case 2 of 10 · HSK 1</div>
+      <div class="t">黑虎泉</div>
+      <div class="q">Black Tiger Spring<br>Topic: numbers and time</div>
+      <div class="row"><span>XP 1,140</span><span>◆ 2</span></div>
+      <div class="bar"><i style="width:14%"></i></div>
+      <div class="k">Passport</div>
+      <div class="stamps"><span class="on">趵</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <div style="flex:1"></div>
+      <div class="btn">Enter 黑虎泉</div>
+      <div class="btn alt">Notebook</div>
+      <div class="keys"><b>←→</b>pick district <b>Enter</b>go <b>N</b>notebook</div>
+    </div>
+  </div></div>
+  <div class="notes">
+    <div><b>From the storybook map:</b> a small set of colors, winding water, big landmarks for each district, and names on ribbon banners.</div>
+    <div><b>From the farmland:</b> pixel terrain with fields, rocks and tree clusters, and no hard borders.</div>
+    <div><b>Progress trail:</b> a solid gold trail shows solved cases. A dotted trail with "?" leads to the next one, so the mystery reveals the route.</div>
+  </div>
+</section>
+
+<section>
+  <div class="label"><span class="n">3</span><h2>District with a conversation</h2></div>
+  <div class="screen"><div class="frame" id="f3"><canvas width="320" height="180"></canvas>
+    <div class="abs tophud"><span class="pill"><span class="han">趵突泉</span></span><span class="pill">XP <b>620</b></span><span class="pill"><span class="g">◆</span> 1</span></div>
+    <div class="abs pxbox clues">
+      <div class="k">Clues 2 / 3</div>
+      <div><i class="x on"></i><span class="han">名牌</span></div>
+      <div><i class="x on"></i><span class="han">纸条</span></div>
+      <div><i class="x"></i>? ? ?</div>
+      <div class="k" style="margin-top:.4cqw">Review room</div>
+      <div><span class="han">复习门</span> · 9 to review</div>
+    </div>
+    <div class="abs pxbox dlg">
+      <div class="portrait"><canvas width="32" height="32" id="portrait"></canvas><span>王奶奶</span></div>
+      <div class="say">
+        <div class="zh han" id="line"></div>
+        <div class="encard" id="encard"><b>杯子</b><i>bēizi</i><span>cup</span></div>
+        <div class="hint">Hover a word for pinyin · Click a word for English · Space to continue</div>
+      </div>
+      <div class="asks">
+        <div class="k">Ask</div>
+        <div class="ask sel"><span>你叫什么名字？</span></div>
+        <div class="ask"><span>你看见杯子了吗？</span><small>new</small></div>
+        <div class="ask"><span>你认识李明吗？</span><small>new</small></div>
+        <div class="ask" style="font-family:var(--f-px)"><span>Bribe</span><span class="gem">1 ◆</span></div>
+        <div class="ask lock">Find a clue to unlock 1 more</div>
+      </div>
+    </div>
+  </div></div>
+  <div class="notes">
+    <div><b>¾ view:</b> walls, railings and buildings show their front faces, and everything casts a shadow, like the farmland reference.</div>
+    <div><b>Characters only:</b> hover any word for pinyin, click it for English. Clicked words go into the notebook.</div>
+    <div><b>The review room:</b> the red 复习门 door has no XP lock. Walk up to it and pass the review to get in.</div>
+  </div>
+</section>
+
+<section>
+  <div class="label"><span class="n">4</span><h2>Review room (the locked-room quiz)</h2></div>
+  <div class="screen"><div class="frame" id="f4"><canvas width="320" height="180"></canvas>
+    <div class="abs pxbox qside">
+      <div class="k">What's in this review</div>
+      <div class="r"><span>Words you met</span><b>6</b></div>
+      <div class="r"><span>Sentences you read</span><b>4</b></div>
+      <div class="r"><span>Questions you asked</span><b>2</b></div>
+      <div class="k" style="margin-top:.4cqw">Best run</div>
+      <div>9 / 12</div>
+    </div>
+    <div class="abs pxbox qcard">
+      <div class="k">复习门 · Review gate</div>
+      <div class="segs"><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="cur"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="prompt">6 / 12 · What does this mean?</div>
+      <div class="big">认识</div>
+      <div class="qopts"><div>to see</div><div class="sel">to know (a person)</div><div>to write</div><div>to like</div></div>
+      <div class="rule">✕ One mistake and the review starts over. Get all 12 right to open the door.</div>
+    </div>
+    <div class="abs pxbox reward">
+      <div class="k" style="font-size:1cqw;color:#8a7650;letter-spacing:.08em;text-transform:uppercase">Behind the door</div>
+      <canvas width="16" height="16" id="scroll"></canvas>
+      <div>A bonus clue, plus 200 XP for a perfect run</div>
+    </div>
+  </div></div>
+  <div class="notes">
+    <div><b>Perfect or nothing:</b> the review covers every word, sentence and question from this district. A miss shows the right answer, then restarts.</div>
+    <div><b>Mixed prompts:</b> word → meaning, sentence → question (like the clue checks), and choosing the right Chinese question for a situation.</div>
+    <div><b>Order changes each try</b>, so you can't pass by memorizing the sequence.</div>
+  </div>
+</section>
+
+<div class="desk">
+  <h3>Desktop only</h3>
+  <ul>
+    <li>No rebuild needed. The trial is already a web page, so this just means removing the touch buttons.</li>
+    <li>It plays in a 16:9 window that scales up evenly, with sharp pixels at 1280×720 and above.</li>
+    <li>Use the keyboard to move and talk. Use the mouse to hover for pinyin and click for English.</li>
+    <li>The same page can later go into your Electron app as a single screen.</li>
+  </ul>
+</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function P(cv){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+  const r=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));};
+  const circ=(cx,cy,rad,c)=>{g.fillStyle=c;for(let y=-rad;y<=rad;y++){const w=Math.floor(Math.sqrt(rad*rad+rad*.6-y*y));g.fillRect(Math.round(cx-w),Math.round(cy+y),w*2+1,1);}};
+  const ell=(cx,cy,rx,ry,c)=>{g.fillStyle=c;for(let y=-ry;y<=ry;y++){const w=Math.floor(rx*Math.sqrt(Math.max(0,1-(y*y)/(ry*ry+.5))));g.fillRect(Math.round(cx-w),Math.round(cy+y),w*2+1,1);}};
+  return {g,r,circ,ell};}
+const PERSON=['................','.....hhhhhh.....','....hhhhhhhh....','....hssssssh....','....sesssses....','....ssssssss....','.....ssssss.....','....cccccccc....','...cccccccccc...','...sccccccccs...','...sccccccccs...','....cccccccc....','....pppppppp....','....ppp..ppp....','....ppp..ppp....','....kkk..kkk....'];
+function person(d,x,y,pal,o){o=o||{};
+  d.ell(x+8,y+16,6,2,'rgba(0,0,0,.25)');
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++){const ch=PERSON[j][i];if(ch==='.')continue;
+    d.r(x+i,y+j,1,1,ch==='h'?pal.h:ch==='s'?pal.s:ch==='e'?'#1b1410':ch==='c'?pal.c:ch==='p'?pal.p:'#1b1410');}
+  if(o.bun)d.r(x+6,y,4,2,pal.h);
+  if(o.cap){d.r(x+4,y+1,8,2,'#d9342b');d.r(x+3,y+3,10,1,'#d9342b');}
+}
+function cloud(d,x,y,s,shade){const parts=[[0,0,6],[7,-3,8],[16,-1,7],[23,1,5],[-6,2,4]];
+  parts.forEach(([a,b,rr])=>d.circ(x+a*s,y+b*s+1.5*s,rr*s,shade||'#cfe6f2'));
+  parts.forEach(([a,b,rr])=>d.circ(x+a*s,y+b*s,rr*s,'#ffffff'));}
+
+/* ---------- 1. Title ---------- */
+(function(){
+  const cv=document.querySelector('#f1 canvas'),d=P(cv),R=rng(7);
+  const bands=[[0,'#3fa9e6'],[34,'#55b9ee'],[64,'#72c8f2'],[92,'#9bd8f5']];
+  bands.forEach(([y,c],i)=>{const y2=i<3?bands[i+1][0]:120;d.r(0,y,320,y2-y,c);
+    if(i>0){for(let x=0;x<320;x+=2){d.r(x+(y%4?1:0),y-1,1,1,c);d.r(x+1,y-2,1,1,c);}}});
+  cloud(d,22,28,1.1);cloud(d,262,22,1.3);cloud(d,190,58,.7);
+  // horizon cloud bank
+  for(let x=-10;x<330;x+=14){d.circ(x,104+(R()*6|0),9+(R()*6|0),'#d9eef8');}
+  for(let x=-4;x<330;x+=16){d.circ(x,106+(R()*4|0),7+(R()*5|0),'#ffffff');}
+  // far tree line
+  for(let x=0;x<320;x+=3)d.r(x,108+(Math.sin(x/9)*2|0),3,8,'#3f8f3a');
+  // grass field
+  d.r(0,114,320,66,'#6abe45');
+  for(let x=0;x<320;x++){const h=(Math.sin(x/5)+Math.sin(x/2.3))*1.2|0;d.r(x,112+h,1,3,'#7ccb4f');}
+  for(let i=0;i<420;i++){const x=R()*320,y=118+R()*62;d.r(x,y,1,2,R()>.5?'#5aa83c':'#8fd65a');}
+  // dirt path
+  for(let y=150;y<180;y++){const w=10+(y-150)*.7;d.r(150-w/2+Math.sin(y/6)*3,y,w,1,'#c9a46a');}
+  // bushes
+  [[34,148,13],[58,160,10],[14,166,9],[292,170,10]].forEach(([x,y,s])=>{d.circ(x,y+2,s,'#2f6e30');d.circ(x-2,y,s-2,'#3f8f3a');d.circ(x-4,y-3,s-6,'#5aa83c');d.r(x-s/2,y-s/2,2,2,'#8fd65a');});
+  // flowers
+  for(let i=0;i<26;i++){const x=R()*320,y=128+R()*50;d.r(x,y,2,2,['#f2c14e','#f28fb0','#ffffff'][i%3]);}
+  // stairs (right)
+  for(let i=0;i<14;i++){const y=176-i*5,x=226+i*4.4;d.r(x,y,46,2,'#cfcfc6');d.r(x,y+2,46,3,'#8d8d86');d.r(x,y,2,5,'#6d6d68');d.r(x+44,y,2,5,'#6d6d68');}
+  // runner
+  person(d,286,94,{h:'#1b1410',s:'#f1c9a3',c:'#ffffff',p:'#c9412f'},{cap:false});
+  [[282,90],[306,98],[300,86]].forEach(([x,y])=>{d.r(x,y,1,3,'#fff');d.r(x-1,y+1,3,1,'#fff');});
+  // logo 天天
+  const TIAN=['.XXXXXXXXX.','.....X.....','.....X.....','XXXXXXXXXXX','.....X.....','....XXX....','...XX.XX...','..XX...XX..','.XX.....XX.','XX.......XX'];
+  const S=6,ox=160-(11*S*2+S)/2,oy=10;
+  const cells=[];[0,1].forEach(k=>TIAN.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch==='X')cells.push([ox+k*(11*S+S)+i*S,oy+j*S,j,i,k]);})));
+  cells.forEach(([x,y])=>d.r(x+5,y+6,S,S,'rgba(20,30,60,.35)'));
+  for(let e=4;e>=1;e--)cells.forEach(([x,y])=>d.r(x+e,y+e,S,S,'#6e1a17'));
+  cells.forEach(([x,y,j,i,k])=>{d.r(x,y,S,S,'#d9342b');if(j===0||TIAN[j-1][i]!=='X')d.r(x,y,S,1,'#f0624f');});
+  // mascot drop
+  const dc=document.querySelector('#f1 .drop'),dd=P(dc);
+  const DROP=['.....oo.....','....oaao....','...oaaaao...','...oaaaao...','..oaabaaao..','.oaabbaaaao.','.oabbaaaaao.','oaaaeaaeaaao','oaaaaaaaaaao','oaapaaaapaao','.oaaammaaao.','.oaaaaaaaao.','..oaaaaaao..','....oooo....'];
+  DROP.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch==='.')return;dd.r(i,j,1,1,{o:'#14404a',a:'#6fd3dd',b:'#e8fbff',e:'#14404a',p:'#f28fb0',m:'#14404a'}[ch]);}));
+})();
+
+/* ---------- 2. City map ---------- */
+const DISTRICTS=[
+ {n:1,zh:'趵突泉',x:58,y:86,st:'done',lm:'spring',r:-4},
+ {n:2,zh:'黑虎泉',x:132,y:112,st:'next',lm:'tiger',r:3},
+ {n:3,zh:'芙蓉街',x:98,y:66,st:'lock',lm:'street',r:-2},
+ {n:4,zh:'宽厚里',x:82,y:124,st:'lock',lm:'lantern',r:4},
+ {n:5,zh:'泉城广场',x:112,y:94,st:'lock',lm:'square',r:-3},
+ {n:6,zh:'大明湖',x:118,y:30,st:'lock',lm:'lake',r:2},
+ {n:7,zh:'五龙潭',x:64,y:50,st:'lock',lm:'pool',r:-5},
+ {n:8,zh:'山东博物馆',x:206,y:94,st:'lock',lm:'museum',r:3},
+ {n:9,zh:'济南站',x:24,y:38,st:'lock',lm:'station',r:-3},
+ {n:10,zh:'千佛山',x:150,y:150,st:'lock',lm:'temple',r:0}
+];
+(function(){
+  const cv=document.querySelector('#f2 canvas'),d=P(cv),R=rng(21);
+  d.r(0,0,320,180,'#b9d65c');
+  for(let i=0;i<900;i++){const x=R()*320,y=R()*180;d.r(x,y,1,1,R()>.5?'#a8c94e':'#c8e06c');}
+  // field patches
+  [[176,40,30,16],[200,62,22,12],[30,70,20,14],[20,110,26,16],[190,128,24,14]].forEach(([x,y,w,h])=>{d.r(x,y,w,h,'#e8c64e');for(let j=0;j<h;j+=3)d.r(x,y+j,w,1,'#d4ad3a');d.r(x,y+h,w,1,'#9c8a3c');});
+  // Yellow River band (top)
+  for(let x=0;x<320;x++){const y=8+Math.sin(x/22)*3+x/45;d.r(x,0,1,y,'#2fa8a8');d.r(x,y,1,2,'#7fd0c8');}
+  // moat / river winding
+  function stroke(pts,w,c){for(let i=0;i<pts.length-1;i++){const[a,b]=pts[i],[e,f]=pts[i+1];const n=Math.hypot(e-a,f-b);for(let t=0;t<=n;t+=1)d.circ(a+(e-a)*t/n,b+(f-b)*t/n,w,c);}}
+  const riv=[[40,72],[50,60],[76,58],[100,52],[128,58],[148,74],[150,96],[140,104],[110,106],[86,106],[66,100],[48,96],[40,72]];
+  stroke(riv,3,'#2a6fa8');stroke(riv,2,'#3e8fc9');
+  for(let i=0;i<riv.length-1;i+=2){const[a,b]=riv[i];d.r(a+2,b,3,1,'#9fd6f0');}
+  // Daming lake
+  d.ell(118,30,24,10,'#2a6fa8');d.ell(118,30,22,8,'#3e8fc9');d.r(106,28,6,1,'#9fd6f0');d.r(124,33,5,1,'#9fd6f0');
+  // Qianfo mountain
+  function mtn(cx,base,hw,ht){for(let y=0;y<ht;y++){const w=hw*(y/ht);d.r(cx-w,base-ht+y,w*2,1,'#f3e7cf');d.r(cx,base-ht+y,w*.9,1,(y%7<4&&y>4)?'#82b3dc':'#e3d2b2');}
+    for(let y=4;y<ht;y+=6)d.r(cx+2,base-ht+y,3,3,'#82b3dc');}
+  mtn(150,182,54,52);mtn(196,182,34,30);mtn(108,182,30,26);
+  // roads
+  function road(a,b){const[x1,y1]=a,[x2,y2]=b;const mx=(x1+x2)/2+(y2-y1)*.25,my=(y1+y2)/2-(x2-x1)*.25;for(let t=0;t<=1;t+=.01){const x=(1-t)*(1-t)*x1+2*(1-t)*t*mx+t*t*x2,y=(1-t)*(1-t)*y1+2*(1-t)*t*my+t*t*y2;d.r(x,y,2,2,'#f6ecd2');}}
+  [[9,7],[7,1],[1,3],[3,6],[3,5],[5,2],[1,4],[4,2],[2,8],[2,10],[5,10]].forEach(([a,b])=>{const A=DISTRICTS[a-1],B=DISTRICTS[b-1];road([A.x,A.y+4],[B.x,B.y+4]);});
+  // trees
+  function pine(x,y){d.r(x-1,y+5,2,2,'#5a3d22');for(let j=0;j<6;j++){d.r(x-j/2-1,y+j,j+2,1,'#2e7d4f');d.r(x,y+j,j/2+1,1,'#4fa35f');}}
+  function round(x,y){d.circ(x,y,3,'#2e7d4f');d.circ(x-1,y-1,2,'#4fa35f');}
+  for(let i=0;i<150;i++){const x=R()*320,y=16+R()*164;
+    if(x>236&&y<170)continue; // under HUD keep light
+    if(DISTRICTS.some(q=>Math.hypot(q.x-x,q.y-y)<16))continue;
+    if(Math.hypot(x-118,y-30)<28)continue;
+    (R()>.5?pine:round)(x,y);}
+  // forest edge right under HUD region (keeps texture)
+  for(let i=0;i<60;i++){const x=240+R()*80,y=16+R()*164;(R()>.4?pine:round)(x,y);}
+  // landmarks
+  function house(x,y,c){d.r(x,y,7,5,c||'#e9a6a0');d.r(x-1,y-3,9,3,'#a8453c');d.r(x,y-4,7,1,'#c25a4c');d.r(x+3,y+2,2,3,'#5a2a26');}
+  const LM={
+   spring:(x,y)=>{d.ell(x,y+2,8,3,'#2a6fa8');d.ell(x,y+2,7,2,'#7fd8e0');[-3,0,3].forEach(o=>{d.r(x+o,y-4,1,5,'#ffffff');d.r(x+o-1,y-5,3,1,'#ffffff');});house(x-14,y-1);house(x+9,y);},
+   tiger:(x,y)=>{d.r(x-10,y-6,20,8,'#8d8d86');[-6,0,6].forEach(o=>{d.r(x+o-2,y-5,4,4,'#2c2f31');d.r(x+o-1,y-4,1,1,'#f2c14e');d.r(x+o,y-1,1,4,'#bfeff3');});d.r(x-12,y+2,24,3,'#3e8fc9');},
+   street:(x,y)=>{house(x-10,y);house(x-2,y-1,'#f1c3a0');house(x+6,y);},
+   lantern:(x,y)=>{house(x-6,y);house(x+3,y,'#f1c3a0');[-8,0,8].forEach(o=>{d.r(x+o,y-8,3,3,'#d9342b');d.r(x+o+1,y-9,1,1,'#2b2118');});},
+   square:(x,y)=>{d.r(x-9,y-1,18,5,'#e8dcc0');d.r(x-1,y-10,3,10,'#d9342b');d.r(x-3,y-11,7,2,'#f2c14e');},
+   lake:(x,y)=>{d.r(x-5,y-4,10,1,'#a8453c');d.r(x-6,y-5,12,1,'#c25a4c');d.r(x-4,y-3,1,5,'#a8453c');d.r(x+3,y-3,1,5,'#a8453c');},
+   pool:(x,y)=>{d.ell(x,y+1,7,3,'#2a6fa8');d.ell(x,y+1,6,2,'#7fd8e0');house(x+8,y-2,'#f1c3a0');},
+   museum:(x,y)=>{d.r(x-10,y-4,20,8,'#f3e7cf');d.r(x-12,y-6,24,3,'#a8453c');for(let i=-8;i<10;i+=4)d.r(x+i,y-3,1,7,'#c9bba0');},
+   station:(x,y)=>{d.r(x-8,y-2,16,6,'#e9a6a0');d.r(x-2,y-10,4,8,'#e9a6a0');d.r(x-3,y-11,6,2,'#a8453c');d.r(x-1,y-8,2,2,'#ffffff');for(let i=-16;i<16;i+=3)d.r(x+i,y+6,2,1,'#2b2118');},
+   temple:(x,y)=>{d.r(x-4,y-24,8,4,'#d9342b');d.r(x-6,y-26,12,2,'#a8453c');d.r(x-1,y-22,2,2,'#f2c14e');}
+  };
+  DISTRICTS.forEach(q=>{d.ell(q.x,q.y+4,12,4,'rgba(60,90,30,.25)');LM[q.lm](q.x,q.y);});
+  // trail 1→2 solid gold, 2→3 dotted
+  function trail(A,B,dash){const n=Math.hypot(B.x-A.x,B.y-A.y);for(let t=0;t<=n;t+=dash?5:2){const x=A.x+(B.x-A.x)*t/n,y=A.y+8+(B.y-A.y)*t/n;d.r(x-1,y-1,3,3,'#2b2118');d.r(x,y,1,1,dash?'#ffffff':'#f2c14e');if(!dash)d.r(x-1,y-1,2,2,'#f2c14e');}}
+  trail(DISTRICTS[0],DISTRICTS[1],false);trail(DISTRICTS[1],DISTRICTS[2],true);
+  // ? marker on dotted trail
+  const qx=(DISTRICTS[1].x+DISTRICTS[2].x)/2,qy=(DISTRICTS[1].y+DISTRICTS[2].y)/2+8;
+  d.r(qx-4,qy-5,9,9,'#2b2118');d.r(qx-3,qy-4,7,7,'#ffffff');d.r(qx-1,qy-3,3,1,'#2b2118');d.r(qx+1,qy-2,1,1,'#2b2118');d.r(qx,qy-1,1,1,'#2b2118');d.r(qx,qy+1,1,1,'#2b2118');
+  // player at district 2
+  person(d,DISTRICTS[1].x+10,DISTRICTS[1].y-18,{h:'#1b1410',s:'#f1c9a3',c:'#2f9e8a',p:'#2b3550'},{cap:true});
+  d.r(DISTRICTS[1].x+16,DISTRICTS[1].y-26,5,2,'#f2c14e');d.r(DISTRICTS[1].x+17,DISTRICTS[1].y-24,3,1,'#f2c14e');d.r(DISTRICTS[1].x+18,DISTRICTS[1].y-23,1,1,'#f2c14e');
+  // compass
+  d.circ(222,160,7,'#f6ecd2');d.circ(222,160,6,'#e5d8b5');d.r(221,153,2,7,'#d9342b');d.r(221,160,2,7,'#2b2118');
+  // ribbons
+  const box=document.getElementById('ribbons');
+  DISTRICTS.forEach(q=>{const e=document.createElement('div');e.className='abs mrib '+q.st;e.style.left=(q.x/320*100)+'%';e.style.top=((q.y+(q.lm==='temple'?-16:9))/180*100)+'%';e.style.setProperty('--r',q.r+'deg');
+    e.textContent=(q.st==='lock'?'🔒︎ ':'')+q.zh;if(q.st==='lock')e.textContent=q.zh;e.title=q.n+'';box.appendChild(e);});
+})();
+
+/* ---------- 3. District ---------- */
+(function(){
+  const cv=document.querySelector('#f3 canvas'),d=P(cv),R=rng(5);
+  d.r(0,0,320,180,'#6abe45');
+  for(let i=0;i<700;i++){const x=R()*320,y=R()*180;d.r(x,y,1,2,R()>.5?'#5aa83c':'#86cf55');}
+  // stone paths
+  function stones(x,y,w,h){d.r(x,y,w,h,'#d8c9a3');for(let j=0;j<h;j+=5)for(let i=(j/5%2)*4;i<w;i+=8)d.r(x+i,y+j,1,5,'#bba878');for(let j=0;j<h;j+=5)d.r(x,y+j,w,1,'#bba878');d.r(x,y+h,w,1,'#9c8a5c');}
+  stones(150,92,22,88);stones(20,96,280,14);
+  // forest top
+  for(let x=-6;x<330;x+=9){d.circ(x,6+(R()*4|0),8,'#2f6e30');d.circ(x-2,4,6,'#3f8f3a');}
+  // spring pool with ¾ walls
+  const px=104,py=30,pw=112,ph=50;
+  d.r(px-4,py-4,pw+8,ph+8,'#cfc8b6');d.r(px-4,py+ph+4,pw+8,6,'#9a9384');for(let i=px-4;i<px+pw+4;i+=6)d.r(i,py+ph+4,1,6,'#857e70');
+  d.r(px,py,pw,ph,'#2c8ea3');
+  for(let i=0;i<40;i++){d.r(px+R()*(pw-8),py+R()*(ph-2),5,1,R()>.5?'#4fb7c6':'#6fd3dd');}
+  [px+30,px+56,px+82].forEach((x,i)=>{d.ell(x,py+28,7,3,'#8fdde6');d.r(x-3,py+14-i%2*2,6,14,'#bfeff3');d.r(x-1,py+11-i%2*2,2,3,'#ffffff');d.r(x-5,py+27,10,2,'#ffffff');});
+  // railing front
+  for(let i=px-4;i<px+pw+4;i+=8){d.r(i,py+ph-2,3,8,'#efeae0');d.r(i,py+ph+6,3,1,'#9a9384');}
+  d.r(px-4,py+ph,pw+8,2,'#e2dccd');
+  // tea house left with review door
+  function building(x,y,w,h,roof){d.r(x+2,y+h,w,3,'rgba(0,0,0,.18)');d.r(x,y,w,h,'#efe2c2');for(let i=x+3;i<x+w;i+=10)d.r(i,y,2,h,'#b8412e');
+    d.r(x-5,y-12,w+10,12,roof);for(let i=x-5;i<x+w+5;i+=3)d.r(i,y-12,1,12,'#2f3a4e');d.r(x-7,y-2,w+14,2,'#2a3346');d.r(x-7,y-4,3,2,'#2a3346');d.r(x+w+4,y-4,3,2,'#2a3346');d.r(x-3,y-14,w+6,2,'#556683');}
+  building(18,50,62,30,'#3e4c63');
+  d.r(40,62,14,18,'#9a2f22');d.r(42,64,10,16,'#b8412e');d.r(46,64,2,16,'#7a2418');d.circ(47,70,3,'#f2c14e');d.r(46,69,2,2,'#9a2f22');
+  d.r(34,52,26,7,'#2b2118');
+  // shop right
+  building(244,52,56,28,'#5a3e63');d.r(258,62,8,6,'#f6d36b');d.r(276,62,8,6,'#f6d36b');
+  // willows & trees with shadows
+  function willow(x,y){d.ell(x,y+10,9,3,'rgba(0,0,0,.2)');d.r(x-1,y+2,3,9,'#5a3d22');d.circ(x,y-2,8,'#5fa35a');for(let i=-7;i<8;i+=2)d.r(x+i,y+2,1,6+((i+9)%3)*2,'#4b8d4a');}
+  function tree(x,y){d.ell(x,y+8,8,3,'rgba(0,0,0,.22)');d.r(x-1,y+2,3,7,'#5a3d22');d.circ(x,y-2,7,'#2f6e30');d.circ(x-2,y-4,4,'#3f8f3a');}
+  willow(92,30);willow(232,34);tree(12,128);tree(300,128);willow(70,140);willow(250,140);tree(200,150);
+  // flowers
+  for(let i=0;i<30;i++){const x=R()*320,y=115+R()*60;if(x>145&&x<178)continue;d.r(x,y,2,2,['#f2c14e','#f28fb0','#fff'][i%3]);}
+  // bench + name tag
+  d.r(228,96,20,3,'#b8844e');d.r(228,99,20,2,'#8a5a32');d.r(230,101,2,4,'#6a4422');d.r(244,101,2,4,'#6a4422');d.r(236,93,6,4,'#fffaf0');d.r(236,93,6,1,'#d9342b');
+  // note on railing (found)
+  d.r(220,74,7,8,'#fffaf0');d.r(222,76,4,1,'#9a8a68');d.r(222,78,4,1,'#9a8a68');
+  // NPCs + player
+  person(d,176,84,{h:'#d8d8d0',s:'#f0c9a0',c:'#8a5aa8',p:'#4a3a5a'},{bun:true});
+  person(d,158,90,{h:'#2a1d18',s:'#f1c9a3',c:'#2f9e8a',p:'#2b3550'},{cap:true});
+  person(d,60,96,{h:'#2a1d18',s:'#eec39a',c:'#3f6fb5',p:'#283a55'});
+  // bubbles
+  function bubble(x,y,c){d.r(x+4,y-11,9,9,'#1b1410');d.r(x+5,y-10,7,7,c);d.r(x+7,y-3,2,2,'#1b1410');d.r(x+8,y-9,1,3,'#1b1410');d.r(x+8,y-5,1,1,'#1b1410');}
+  bubble(60,96,'#f2c14e');
+  // speaking indicator over grandma
+  d.r(181,72,7,5,'#ffffff');d.r(182,74,1,1,'#1b1410');d.r(184,74,1,1,'#1b1410');d.r(186,74,1,1,'#1b1410');d.r(183,77,2,1,'#ffffff');
+  // portrait
+  const pc=document.getElementById('portrait'),p=P(pc);
+  p.r(0,0,32,32,'#9fd3e6');p.r(0,24,32,8,'#8a5aa8');p.r(10,24,12,3,'#ffffff');
+  p.circ(16,16,9,'#f0c9a0');p.r(7,6,18,6,'#d8d8d0');p.circ(16,4,4,'#d8d8d0');p.r(6,9,3,8,'#d8d8d0');p.r(23,9,3,8,'#d8d8d0');
+  p.r(11,15,3,3,'#1b1410');p.r(18,15,3,3,'#1b1410');p.r(12,15,1,1,'#ffffff');p.r(19,15,1,1,'#ffffff');
+  p.r(9,19,3,2,'#f2a7a0');p.r(20,19,3,2,'#f2a7a0');p.r(13,21,6,1,'#7a3a2a');p.r(14,22,4,1,'#7a3a2a');
+  p.r(10,13,4,1,'#9a9a90');p.r(18,13,4,1,'#9a9a90');
+  // dialogue words
+  const W=[['你好','nǐ hǎo','hello'],['！'],['我','wǒ','I, me'],['的','de','’s (possessive)'],['杯子','bēizi','cup'],['没有','méiyǒu','not have; is gone'],['了','le','(change)'],['！']];
+  const line=document.getElementById('line'),card=document.getElementById('encard');
+  W.forEach(t=>{if(t.length===1){line.append(t[0]);return;}const s=document.createElement('span');s.className='w';s.textContent=t[0];const py=document.createElement('span');py.className='py';py.textContent=t[1];s.appendChild(py);
+    if(t[0]==='没有')s.classList.add('demo-hover');if(t[0]==='杯子')s.classList.add('demo-click');
+    s.addEventListener('mouseenter',()=>line.querySelectorAll('.demo-hover').forEach(e=>e.classList.remove('demo-hover')));
+    s.addEventListener('click',()=>{line.querySelectorAll('.demo-click,.clicked').forEach(e=>e.classList.remove('demo-click','clicked'));s.classList.add('clicked');card.innerHTML='';const b=document.createElement('b');b.textContent=t[0];const i=document.createElement('i');i.textContent=t[1];const sp=document.createElement('span');sp.textContent=t[2];card.append(b,i,sp);});
+    line.appendChild(s);});
+})();
+
+/* ---------- 4. Review room ---------- */
+(function(){
+  const cv=document.querySelector('#f4 canvas'),d=P(cv),R=rng(11);
+  // back wall
+  d.r(0,0,320,70,'#7a4a2a');for(let x=0;x<320;x+=16)d.r(x,0,2,70,'#643a20');d.r(0,66,320,4,'#4a2a16');
+  // floor planks ¾
+  for(let y=70;y<180;y+=6){d.r(0,y,320,6,y%12?'#a8703e':'#9a6536');d.r(0,y,320,1,'#7a4a2a');for(let x=(y*7)%40;x<320;x+=40)d.r(x,y,1,6,'#7a4a2a');}
+  // shelves
+  function shelf(x,y){d.r(x,y,60,3,'#4a2a16');for(let i=0;i<8;i++){const h=6+(R()*5|0);d.r(x+3+i*7,y-h,5,h,['#d9342b','#2f9e8a','#f2c14e','#3e4c63'][i%4]);}}
+  shelf(14,30);shelf(14,52);shelf(246,30);shelf(246,52);
+  // scroll and lanterns
+  d.r(146,6,28,48,'#f6ecd2');d.r(144,4,32,3,'#4a2a16');d.r(144,54,32,3,'#4a2a16');
+  for(let j=0;j<4;j++)d.r(156,12+j*10,8,6,'#2b2118');
+  [[110,10],[210,10]].forEach(([x,y])=>{d.r(x+3,y-10,1,10,'#2b2118');d.ell(x+3,y+6,7,8,'#d9342b');d.r(x-3,y-2,13,1,'#a32a22');d.r(x-3,y+6,13,1,'#a32a22');d.r(x-1,y+14,9,2,'#f2c14e');});
+  // locked door glow at back center
+  d.r(140,58,40,12,'#9a2f22');
+  // vignette
+  for(let i=0;i<24;i++){d.g.fillStyle='rgba(20,10,4,'+(0.025)+')';d.g.fillRect(i,i,320-2*i,180-2*i);}
+  d.g.fillStyle='rgba(20,10,4,.25)';d.g.fillRect(0,0,320,180);
+  // scroll reward icon
+  const sc=document.getElementById('scroll'),s=P(sc);
+  s.r(2,3,12,10,'#fffaf0');s.r(1,2,14,2,'#8a5a32');s.r(1,12,14,2,'#8a5a32');s.r(4,6,8,1,'#9a8a68');s.r(4,8,6,1,'#9a8a68');s.r(6,10,4,2,'#d9342b');
+})();
+})();
+</script>

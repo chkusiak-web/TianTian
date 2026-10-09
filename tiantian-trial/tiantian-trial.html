@@ -1,0 +1,978 @@
+<title>天天 Jinan Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&family=Pixelify+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: one game column. HUD strip, pixel canvas, dialogue panel slides over the bottom of the canvas, notebook is a full overlay. Single night-spring look by choice. */
+:root{
+  --ink:#0d2124; --deep:#15343a; --deeper:#0a1a1c; --line:#2a5359;
+  --jade:#46b39d; --spring:#6fd3dd; --paper:#f4ebd3; --paper-ink:#2b2418; --paper-line:#d9cba6;
+  --seal:#c9412f; --gold:#eab84b; --lotus:#ec8fab; --mute:#93b7b3; --fg:#e9f2ee;
+  --ok:#6cc47a; --bad:#e2735f;
+  --f-pixel:"Pixelify Sans", ui-monospace, monospace;
+  --f-han:"Atkinson Hyperlegible","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--ink);color:var(--fg)}
+body{font-family:var(--f-han);padding-inline:16px;padding-block:12px 32px}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+
+/* HUD */
+.hud{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-family:var(--f-pixel)}
+.brand{font-family:var(--f-han);font-weight:700;font-size:22px;letter-spacing:.04em;color:var(--spring);display:flex;align-items:baseline;gap:8px}
+.brand small{font-family:var(--f-pixel);font-weight:400;font-size:12px;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.stats{display:flex;align-items:center;gap:12px;margin-left:auto;flex-wrap:wrap}
+.lv{font-size:13px;color:var(--mute)}
+.xpbox{display:flex;flex-direction:column;gap:3px;min-width:150px}
+.xprow{display:flex;justify-content:space-between;font-size:12px;font-variant-numeric:tabular-nums}
+.xprow b{color:var(--gold);font-weight:600}
+.bar{height:8px;background:var(--deeper);border:1px solid var(--line);position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--gold);width:0;transition:width .4s}
+.gems{display:flex;align-items:center;gap:5px;font-size:15px;font-variant-numeric:tabular-nums}
+.gems svg{width:16px;height:16px}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.pbtn{font-family:var(--f-pixel);font-size:13px;background:var(--deep);border:2px solid var(--line);padding:5px 10px;cursor:pointer;box-shadow:0 2px 0 var(--deeper)}
+.pbtn:hover{border-color:var(--jade)}
+.pbtn:active{transform:translateY(2px);box-shadow:none}
+.pbtn.hot{background:var(--seal);border-color:#e5705f}
+.pbtn[aria-pressed="true"]{border-color:var(--spring);color:var(--spring)}
+.kbd{font-size:10px;color:var(--mute);margin-left:4px}
+
+/* Stage */
+.stage{position:relative;border:3px solid var(--line);background:var(--deeper);image-rendering:pixelated}
+.scenehead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.scenehead h1{margin:0;font-size:18px;font-weight:700;text-wrap:balance}
+.scenehead h1 span{font-family:var(--f-pixel);font-weight:400;font-size:13px;color:var(--mute);margin-left:8px}
+.scenehead p{margin:0;font-family:var(--f-pixel);font-size:12px;color:var(--mute)}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+#game{cursor:pointer}
+
+/* City */
+.city{position:relative}
+.pin{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;display:grid;place-items:center;font-family:var(--f-pixel);font-size:14px;cursor:pointer;border:2px solid var(--deeper);background:#5a6b6a;color:#d6dfdd;box-shadow:0 3px 0 var(--deeper)}
+.pin.open{background:var(--gold);color:var(--paper-ink);animation:bob 1.4s ease-in-out infinite}
+.pin.done{background:var(--seal);color:var(--paper)}
+.pin.locked::after{content:"";position:absolute;width:10px;height:8px;right:-6px;top:-6px;background:var(--deeper);border:2px solid #8a9997}
+@keyframes bob{50%{transform:translate(-50%,-62%)}}
+.dlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+.drow{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:8px;padding:7px 9px;background:var(--deep);border:2px solid var(--line);cursor:pointer;text-align:left}
+.drow:hover{border-color:var(--jade)}
+.drow .n{font-family:var(--f-pixel);color:var(--mute);font-size:14px}
+.drow .nm{min-width:0}
+.drow .nm b{font-weight:500;font-size:15px}
+.drow .nm div{font-size:12px;color:var(--mute);font-family:var(--f-pixel)}
+.chip{font-family:var(--f-pixel);font-size:11px;padding:2px 6px;border:1px solid currentColor;white-space:nowrap}
+.chip.play{color:var(--gold)} .chip.done{color:var(--lotus)} .chip.lock{color:#7d8f8d}
+.mystery{background:var(--deep);border-left:4px solid var(--spring);padding:10px 12px;font-size:14px;line-height:1.55}
+.mystery b{color:var(--spring)}
+
+/* Dialogue panel */
+.panel{position:relative;margin:2px 3px 6px;display:flex;flex-direction:column;background:var(--paper);color:var(--paper-ink);border:3px solid var(--paper-ink);box-shadow:0 0 0 3px var(--paper),0 6px 0 3px rgba(0,0,0,.35)}
+.ptitle{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;background:var(--paper-ink);color:var(--paper);font-family:var(--f-pixel);font-size:13px}
+.ptitle .x{background:none;border:0;cursor:pointer;color:var(--paper);font-size:14px;padding:0 4px}
+.lines{overflow-y:auto;max-height:min(44vh,360px);padding:8px 12px 4px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.line{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start}
+.line .sp{font-family:var(--f-pixel);font-size:12px;padding-top:12px;color:#6b5b3c;white-space:nowrap}
+.line.you .sp{color:var(--seal)}
+.line .body{min-width:0}
+.line.sys{display:block;font-family:var(--f-pixel);font-size:12px;color:#6b5b3c}
+.line.sys.bad{color:var(--seal)}
+.line.sys.good{color:#2f7a45}
+.paperclue{background:#fffaf0;border:2px dashed var(--paper-line);padding:8px 10px;position:relative}
+.paperclue .kind{font-family:var(--f-pixel);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a7650}
+.paperclue.flash{animation:flash 1s 2}
+@keyframes flash{50%{background:#ffe6a3}}
+.zh{font-size:21px;line-height:1.9;word-break:keep-all;overflow-wrap:anywhere}
+.zh.sm{font-size:17px;line-height:1.75}
+.zh .w{cursor:pointer;border-bottom:1px dotted transparent;border-radius:2px;padding:0 1px}
+.zh .w:hover{border-bottom-color:#8a7650;background:rgba(234,184,75,.18)}
+.zh .w.name{color:#3a5f8a}
+.zh rt{font-size:11px;color:#7a6a48;font-family:var(--f-han);letter-spacing:0}
+.nopy .zh rt{display:none}
+.hl{background:#ffd96a;box-shadow:0 0 0 2px #ffd96a}
+.en{display:flex;gap:8px;align-items:baseline;font-size:13px;color:#6b5b3c}
+.en button{font-family:var(--f-pixel);font-size:11px;background:none;border:1px solid #b8a67f;padding:0 5px;cursor:pointer;color:#6b5b3c}
+.en span[hidden]{display:none}
+.gloss{margin:0 12px;padding:6px 10px;background:var(--paper-ink);color:var(--paper);font-size:14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.gloss b{font-size:20px;color:var(--gold)}
+.gloss i{font-style:normal;color:var(--spring)}
+.gloss small{font-family:var(--f-pixel);color:var(--mute);font-size:11px;margin-left:auto}
+.choices{display:flex;flex-direction:column;gap:5px;padding:8px 12px 10px}
+.choice{display:flex;align-items:center;gap:8px;text-align:left;background:#fffaf0;border:2px solid var(--paper-ink);padding:4px 10px;cursor:pointer;color:var(--paper-ink);box-shadow:0 2px 0 var(--paper-ink)}
+.choice:hover:not(:disabled){background:#fff1c9}
+.choice:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+.choice:disabled{opacity:.5;cursor:default;box-shadow:none;border-style:dashed}
+.choice .k{font-family:var(--f-pixel);font-size:11px;color:#8a7650;min-width:12px}
+.choice .lbl{flex:1;min-width:0;font-family:var(--f-pixel);font-size:14px}
+.choice .zh{font-size:17px;line-height:1.7}
+.choice .tag{font-family:var(--f-pixel);font-size:10px;padding:1px 5px;background:var(--gold);color:var(--paper-ink)}
+.choice .tag.gem{background:var(--spring)}
+.choice.wrong{animation:shake .35s;border-color:var(--seal)}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.stamp{display:inline-grid;place-items:center;width:84px;height:84px;border:4px solid var(--seal);color:var(--seal);font-weight:700;font-size:20px;line-height:1.1;text-align:center;transform:rotate(-8deg);border-radius:6px;animation:stampin .5s cubic-bezier(.2,1.6,.5,1)}
+@keyframes stampin{from{transform:rotate(-8deg) scale(2.2);opacity:0}}
+
+/* Pad */
+.pad{display:none;justify-content:space-between;align-items:center;gap:12px;padding-top:4px}
+.dpad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,44px);gap:3px}
+.dpad button,.abtn{background:var(--deep);border:2px solid var(--line);font-family:var(--f-pixel);font-size:16px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.dpad button:active,.abtn:active{background:var(--line)}
+.abtn{width:76px;height:76px;border-radius:50%;font-size:14px;background:var(--seal);border-color:#e5705f}
+@media (hover:none),(max-width:600px){.pad{display:flex}.kbd{display:none}}
+.talking .pad,.talking .help{display:none!important}
+.help{font-family:var(--f-pixel);font-size:12px;color:var(--mute);display:flex;gap:14px;flex-wrap:wrap}
+@media (hover:none),(max-width:600px){.help{display:none}}
+
+/* Toasts */
+.toasts{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;z-index:50;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
+.toast{font-family:var(--f-pixel);font-size:14px;background:var(--deeper);border:2px solid var(--gold);color:var(--gold);padding:6px 12px;animation:tin .25s ease-out, tout .4s 2.4s forwards;text-align:center}
+.toast.gem{border-color:var(--spring);color:var(--spring)}
+.toast.q{border-color:var(--lotus);color:var(--fg)}
+@keyframes tin{from{transform:translateY(-10px);opacity:0}}
+@keyframes tout{to{opacity:0;transform:translateY(-8px)}}
+
+/* Notebook */
+.overlay{position:fixed;inset:0;background:rgba(5,14,16,.78);z-index:40;display:grid;place-items:center;padding:16px}
+.book{width:min(760px,100%);max-height:calc(100% - 16px);display:flex;flex-direction:column;background:var(--paper);color:var(--paper-ink);border:3px solid var(--paper-ink)}
+.tabs{display:flex;flex-wrap:wrap;background:var(--paper-ink)}
+.tabs button{font-family:var(--f-pixel);font-size:13px;background:none;border:0;color:var(--paper);padding:8px 12px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--paper);color:var(--paper-ink)}
+.tabs .x{margin-left:auto}
+.bookbody{overflow-y:auto;padding:12px 14px 16px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.bookbody h3{margin:6px 0 0;font-family:var(--f-pixel);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#8a7650}
+.entry{display:grid;gap:2px;padding:6px 0;border-bottom:1px solid var(--paper-line)}
+.entry .src{font-family:var(--f-pixel);font-size:11px;color:#8a7650}
+.empty{font-family:var(--f-pixel);color:#8a7650;font-size:13px}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.word{border:2px solid var(--paper-ink);padding:4px 8px;background:#fffaf0;display:grid;line-height:1.2}
+.word b{font-size:20px;font-weight:500}
+.word i{font-style:normal;font-size:12px;color:#7a6a48}
+.word span{font-size:12px}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.person{display:flex;gap:10px;align-items:center;border:2px solid var(--paper-ink);padding:6px;background:#fffaf0}
+.person canvas{width:40px;height:40px;flex:none}
+.person b{font-size:16px;font-weight:500}
+.person div div{font-size:12px;color:#7a6a48;font-family:var(--f-pixel)}
+.passport{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.slot{aspect-ratio:1;max-width:100%;border:2px dashed var(--paper-line);display:grid;place-items:center;text-align:center;font-size:12px;color:#8a7650;font-family:var(--f-pixel);padding:6px}
+.slot .stamp{width:78px;height:78px;font-size:17px;animation:none}
+.quiz{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.quiz .big{font-size:44px;font-weight:500;line-height:1.1}
+.quiz .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;max-width:480px}
+.setrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--f-pixel);font-size:13px}
+.danger{background:#fffaf0;border:2px solid var(--seal);color:var(--seal);font-family:var(--f-pixel);padding:4px 10px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap" id="app">
+  <header class="hud">
+    <div class="brand">天天 <small>Jinan · HSK 1 trial</small></div>
+    <div class="stats">
+      <span class="lv" id="lv">Lv 1</span>
+      <div class="xpbox" title="Every 1,000 XP turns into a Diamond">
+        <div class="xprow"><span><b id="xp">0</b> XP</span><span id="nextgem">1,000 to next ◆</span></div>
+        <div class="bar"><i id="xpbar"></i></div>
+      </div>
+      <span class="gems" title="Diamonds: spend one to bribe a character"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h8l3 4-7 8-7-8z" fill="#6fd3dd"/><path d="M4 2l2 4h4l2-4M1 6h14M6 6l2 8 2-8" fill="none" stroke="#0a1a1c" stroke-width="1"/></svg><b id="gems">1</b></span>
+    </div>
+  </header>
+
+  <div class="scenehead">
+    <h1 id="scenetitle">济南 Jinan</h1>
+    <div class="btnrow">
+      <button class="pbtn" id="btnPy" aria-pressed="true">拼音</button>
+      <button class="pbtn" id="btnBook">Notebook<span class="kbd">N</span></button>
+      <button class="pbtn" id="btnMap" hidden>City map<span class="kbd">Esc</span></button>
+      <button class="pbtn hot" id="btnSolve" hidden>Solve the case</button>
+    </div>
+  </div>
+
+  <!-- City scene -->
+  <section id="cityScene" class="wrap" style="gap:10px">
+    <div class="stage city" id="cityStage"><canvas id="cityCanvas" width="200" height="130"></canvas></div>
+    <div class="mystery" id="mystery"></div>
+    <div class="dlist" id="dlist"></div>
+  </section>
+
+  <!-- District scene -->
+  <section id="districtScene" hidden class="wrap" style="gap:8px">
+    <div class="stage" id="stage">
+      <canvas id="game" width="352" height="224"></canvas>
+    </div>
+    <div class="panel" id="panel" hidden>
+        <div class="ptitle"><span id="ptitle"></span><button class="x" id="pclose" aria-label="Close">✕</button></div>
+        <div class="lines" id="lines"></div>
+        <div class="gloss" id="gloss" hidden></div>
+        <div class="choices" id="choices"></div>
+      </div>
+    <div class="help"><span>Move: arrows / WASD</span><span>Talk or read: Space</span><span>Answer: 1–4</span><span>Notebook: N</span><span>Map: Esc</span><span>Tap a word to see it</span></div>
+    <div class="pad">
+      <div class="dpad">
+        <span></span><button data-d="up" aria-label="Up">▲</button><span></span>
+        <button data-d="left" aria-label="Left">◀</button><span></span><button data-d="right" aria-label="Right">▶</button>
+        <span></span><button data-d="down" aria-label="Down">▼</button><span></span>
+      </div>
+      <button class="abtn" id="abtn">TALK</button>
+    </div>
+  </section>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="overlay" id="bookOverlay" hidden>
+  <div class="book" role="dialog" aria-label="Notebook">
+    <div class="tabs" id="tabs"></div>
+    <div class="bookbody" id="bookbody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------------- Lexicon (HSK 1 + names) ---------------- */
+const LEX={
+'你':['nǐ','you'],'好':['hǎo','good'],'你好':['nǐ hǎo','hello'],'我':['wǒ','I, me'],'的':['de','(possessive) ’s'],
+'杯子':['bēizi','cup'],'没有':['méiyǒu','not have; there is no'],'了':['le','(change / done)'],'叫':['jiào','to be called'],
+'什么':['shénme','what'],'名字':['míngzi','name'],'是':['shì','to be'],'学生':['xuésheng','student'],'老师':['lǎoshī','teacher'],
+'医生':['yīshēng','doctor'],'在':['zài','at, in; to be at'],'这儿':['zhèr','here'],'那儿':['nàr','there'],'想':['xiǎng','to want to'],
+'看看':['kànkan','to have a look'],'看':['kàn','to look, read, watch'],'水':['shuǐ','water'],'谁':['shéi','who'],
+'对不起':['duìbuqǐ','sorry'],'再见':['zàijiàn','goodbye'],'喂':['wéi','hello? (on the phone)'],'认识':['rènshi','to know (a person)'],
+'吗':['ma','(yes/no question)'],'看见':['kànjiàn','to see'],'他':['tā','he, him'],'很':['hěn','very'],'喜欢':['xǐhuan','to like'],
+'不':['bù','not'],'哪儿':['nǎr','where'],'前面':['qiánmiàn','in front, ahead'],'上午':['shàngwǔ','morning'],'下午':['xiàwǔ','afternoon'],
+'工作':['gōngzuò','to work; job'],'学校':['xuéxiào','school'],'医院':['yīyuàn','hospital'],'说':['shuō','to say'],'少':['shǎo','few, little'],
+'多':['duō','many, much'],'明天':['míngtiān','tomorrow'],'昨天':['zuótiān','yesterday'],'去':['qù','to go'],'来':['lái','to come'],
+'写':['xiě','to write'],'小':['xiǎo','small'],'一个':['yí ge','one, a'],'有':['yǒu','to have; there is'],'里':['lǐ','in, inside'],
+'请':['qǐng','please'],'家':['jiā','home'],'回':['huí','to go back'],'做':['zuò','to do'],'东西':['dōngxi','thing, stuff'],
+'买':['mǎi','to buy'],'睡觉':['shuìjiào','to sleep'],'书':['shū','book'],'电影':['diànyǐng','movie'],'没':['méi','did not'],
+'现在':['xiànzài','now'],'几':['jǐ','how many; what (number)'],'点':['diǎn','o’clock'],'分':['fēn','minute (clock time)'],
+'分钟':['fēnzhōng','minute(s) (how long)'],'三':['sān','three'],'五':['wǔ','five'],'六':['liù','six'],'七':['qī','seven'],
+'八':['bā','eight'],'十':['shí','ten'],'十五':['shíwǔ','fifteen'],'五十':['wǔshí','fifty'],'星期一':['xīngqīyī','Monday'],
+'星期二':['xīngqī’èr','Tuesday'],'星期三':['xīngqīsān','Wednesday'],'人':['rén','person, people'],'喝':['hē','to drink'],
+'茶':['chá','tea'],'一杯':['yì bēi','a cup of'],'块':['kuài','yuan (money)'],'都':['dōu','all, both'],'先生':['xiānsheng','Mr.; gentleman'],
+'小姐':['xiǎojiě','Miss'],'岁':['suì','years old'],'会':['huì','can, know how to'],'字':['zì','character (writing)'],
+'饭店':['fàndiàn','restaurant'],'那个':['nàge','that'],'和':['hé','and'],'妈妈':['māma','mom'],'这':['zhè','this'],
+'天天':['Tiāntian','Tiantian (you)','name'],'王奶奶':['Wáng nǎinai','Grandma Wang','name'],'李明':['Lǐ Míng','Li Ming','name'],
+'张':['Zhāng','Zhang (surname)','name'],'张丽':['Zhāng Lì','Zhang Li','name'],'陈':['Chén','Chen (surname)','name'],
+'陈东':['Chén Dōng','Chen Dong','name'],'周':['Zhōu','Zhou (surname)','name'],'刘':['Liú','Liu (surname)','name'],
+'小月':['Xiǎo Yuè','Xiao Yue','name'],'黑虎泉':['Hēihǔ Quán','Black Tiger Spring','name'],'趵突泉':['Bàotū Quán','Baotu Spring','name']
+};
+const PUNCT=/^[，。！？：、…“”‘’（）]+$/;
+const Z=(zh,en)=>({zh,en});
+
+/* ---------------- Districts ---------------- */
+const DISTRICTS=[
+ {n:1,id:'baotu',zh:'趵突泉',en:'Baotu Spring',topic:'Greetings, names',x:31,y:49},
+ {n:2,id:'heihu',zh:'黑虎泉',en:'Black Tiger Spring',topic:'Numbers, time',x:55,y:62},
+ {n:3,zh:'芙蓉街',en:'Furong Street',topic:'Food, drink',x:43,y:39},
+ {n:4,zh:'宽厚里',en:'Kuanhouli',topic:'Shopping, money',x:40,y:63},
+ {n:5,zh:'泉城广场',en:'Quancheng Square',topic:'Family',x:44,y:52},
+ {n:6,zh:'大明湖',en:'Daming Lake',topic:'Places, where',x:46,y:24},
+ {n:7,zh:'五龙潭',en:'Five Dragon Pool',topic:'Weather',x:30,y:34},
+ {n:8,zh:'山东博物馆',en:'Shandong Museum',topic:'Dates, days',x:82,y:60},
+ {n:9,zh:'济南站',en:'Jinan Station',topic:'Transport',x:13,y:30},
+ {n:10,zh:'千佛山',en:'Qianfo Mountain',topic:'Want, like, can',x:55,y:86}
+];
+
+const CASES={
+ baotu:{
+  id:'baotu',zh:'趵突泉',en:'Baotu Spring',topic:'Greetings, names',
+  question:'Who took Grandma Wang’s cup?',
+  map:[
+   'TTTTTTTTTTTTTTTTTTTTTT',
+   'T..w....,,,,,....####T',
+   'T.......,...,....#rr#T',
+   'T.f..RRRRRRRR....#rr#T',
+   'T....R~~~~~~R....##D#T',
+   'T,,,,R~~~~~~R,,,,,,,,T',
+   'T....R~~~~~~R.......wT',
+   'T..w.RRRRRRRR...f...bT',
+   'T........,...........T',
+   'THHHH....,....w......T',
+   'Thhhh....,...........T',
+   'T........,.....f.....T',
+   'T.f......,...........T',
+   'TTTTTTTTTGTTTTTTTTTTTT'],
+  spouts:[[7,5],[9,5],[11,5]],
+  spawn:[9,12],
+  room:{door:[19,4],need:500,label:'Tea house back room'},
+  startChunks:['name','sawCup'],
+  chunks:{
+   name:Z('你 叫 什么 名字 ？','What’s your name?'),
+   sawCup:Z('你 看见 杯子 了 吗 ？','Did you see the cup?'),
+   knowLi:Z('你 认识 李明 吗 ？','Do you know Li Ming?'),
+   whereLi:Z('李明 在 哪儿 ？','Where is Li Ming?')
+  },
+  clues:[
+   {id:'tag',kind:'Name tag',x:20,y:7,spr:'tag',where:'on the bench by the willow, right side',
+    s:Z('我 叫 李明 。 我 是 学生 。','My name is Li Ming. I am a student.'),
+    check:{q:Z('他 叫 什么 名字 ？','What is his name?'),opts:['李明','张丽','陈东'],a:0},grants:'knowLi'},
+   {id:'note',kind:'Note on the railing',x:13,y:3,spr:'note',where:'on the railing at the top right of the spring',
+    s:Z('王奶奶 ， 你好 ！ 我 是 学生 。 你 的 杯子 在 我 这儿 。 对不起 ！','Grandma Wang, hello! I’m a student. Your cup is with me. Sorry!'),
+    check:{q:Z('杯子 在 谁 那儿 ？','Who has the cup?'),opts:['老师','学生','医生'],a:1}},
+   {id:'call',kind:'Overheard',x:2,y:8,spr:'call',where:'by the willow on the left, someone is on the phone',
+    s:Z('喂 ， 你好 ！ 我 是 李明 。 我 想 看看 这儿 的 水 。 再见 ！','Hello? Hi! It’s Li Ming. I want to look at the water here. Bye!'),
+    check:{q:Z('李明 想 看 什么 ？','What does Li Ming want to look at?'),opts:['水','书','电影'],a:0},grants:'whereLi'},
+   {id:'diary',kind:'Diary page (XP room)',x:18,y:2,spr:'note',room:true,where:'in the locked back room',
+    s:Z('明天 我 去 黑虎泉 。 那儿 的 水 很 少 。','Tomorrow I’m going to Black Tiger Spring. The water there is low.'),
+    check:{q:Z('明天 他 去 哪儿 ？','Where is he going tomorrow?'),opts:['趵突泉','黑虎泉','学校'],a:1}}
+  ],
+  npcs:[
+   {id:'wang',zh:'王奶奶',py:'Wáng nǎinai',en:'Grandma Wang',role:'Lives by the spring',x:14,y:4,pal:{h:'#d8d8d0',s:'#f0c9a0',c:'#8a5aa8',p:'#4a3a5a'},bun:true,
+    intro:Z('你好 ！ 我 的 杯子 没有 了 ！','Hello! My cup is gone!'),
+    ask:{q:Z('你 叫 什么 名字 ？','What’s your name?'),opts:['我 叫 天天 。','我 是 医生 。','再见 ！'],a:0,
+         after:Z('天天 ， 你好 ！ 请 你 看看 。','Tiantian, hello! Please take a look.'),
+         miss:'She asked your name. Answer with 我叫… (My name is…).'},
+    greet:Z('天天 ， 你好 ！','Tiantian, hello!'),
+    topics:{
+     name:Z('我 是 王奶奶 。 这儿 是 我 的 家 。','I’m Grandma Wang. This is my home.'),
+     sawCup:Z('没有 。 我 的 杯子 很 小 。','No. My cup is very small.'),
+     knowLi:Z('认识 。 他 是 学生 。 他 很 喜欢 水 。','Yes. He’s a student. He really likes water.'),
+     whereLi:Z('他 不 在 这儿 。','He isn’t here.')},
+    bribe:Z('李明 说 ： 这儿 的 水 很 少 。','Li Ming said: the water here is low.')},
+   {id:'zhang',zh:'张老师',py:'Zhāng lǎoshī',en:'Teacher Zhang',role:'Teaches at a school nearby',x:3,y:11,pal:{h:'#2a1d18',s:'#eec39a',c:'#3f6fb5',p:'#283a55'},long:true,
+    intro:Z('你好 ！ 我 是 张 老师 。 我 在 学校 工作 。','Hello! I’m Teacher Zhang. I work at a school.'),
+    greet:Z('你好 ！','Hello!'),
+    topics:{
+     name:Z('我 叫 张丽 。 我 是 老师 ， 不 是 学生 。','My name is Zhang Li. I’m a teacher, not a student.'),
+     sawCup:Z('看见 了 。 一个 学生 有 一个 小 杯子 。','Yes. A student had a small cup.'),
+     knowLi:Z('认识 ！ 他 是 我 的 学生 。','Yes! He’s my student.'),
+     whereLi:Z('上午 他 在 前面 看 水 。','This morning he was up ahead, looking at the water.')},
+    bribe:Z('李明 写 ： 明天 去 黑虎泉 。','Li Ming wrote: tomorrow, go to Black Tiger Spring.')},
+   {id:'chen',zh:'陈医生',py:'Chén yīshēng',en:'Doctor Chen',role:'Works at the hospital',x:16,y:9,pal:{h:'#3a2a20',s:'#e7b98f',c:'#f2f2ee',p:'#5d6b74'},
+    intro:Z('你好 。 我 是 陈 医生 。 我 在 医院 工作 。','Hello. I’m Doctor Chen. I work at the hospital.'),
+    greet:Z('你好 。','Hello.'),
+    topics:{
+     name:Z('我 叫 陈东 。 我 是 医生 ， 不 是 学生 。','My name is Chen Dong. I’m a doctor, not a student.'),
+     sawCup:Z('没有 ， 我 没 看见 。','No, I didn’t see it.'),
+     knowLi:Z('不 认识 。','No, I don’t know him.'),
+     whereLi:Z('谁 ？ 我 不 认识 他 。','Who? I don’t know him.')},
+    bribe:Z('我 看见 一个 学生 。 他 的 杯子 里 有 水 。','I saw a student. There was water in his cup.')}
+  ],
+  solve:[
+   {q:Z('王奶奶 的 杯子 在 谁 那儿 ？','Who has Grandma Wang’s cup?'),opts:['张 老师','李明','陈 医生'],a:1,ev:['note','tag'],
+    hint:'A note on the spring railing says who has the cup. A name tag on the bench says who that is.'},
+   {q:Z('李明 想 做 什么 ？','What does Li Ming want to do?'),opts:['看 水','买 东西','睡觉'],a:0,ev:['call'],
+    hint:'Someone is on the phone by the willow on the left.'}
+  ],
+  epilogue:{s:Z('李明 想 看看 水 。 这儿 的 水 很 少 。','Li Ming wants to look at the water. The water here is low.'),
+   en:'Li Ming borrowed Grandma Wang’s cup to test the spring water. He thinks Jinan’s springs are getting low, and his trail leads to Black Tiger Spring.'},
+  next:'heihu'
+ },
+ heihu:{
+  id:'heihu',zh:'黑虎泉',en:'Black Tiger Spring',topic:'Numbers, time',
+  question:'What time does the water stop?',
+  map:[
+   'TTTT######XXX#######TT',
+   '~~~~~~~~~~~~~~~~~~~~~~',
+   '~~~~~~~~~~~~~~~~~~~~~~',
+   'RRRRRRRRRRRRRRRRRRRRRR',
+   'T,,,,,,,,,,,,,,,,,,,,T',
+   'Tw.....f....,...f..w.T',
+   'T...........,........T',
+   'T..####.....,...HHHH.T',
+   'T..#rr#..f..,...hhhh.T',
+   'T..#rr#.....,........T',
+   'T..##D#.....,..f.....T',
+   'T......f....,........T',
+   'T.....w.....,.....w..T',
+   'TTTTTTTTTTTTGTTTTTTTTT'],
+  tigers:[10,11,12],
+  spawn:[12,12],
+  room:{door:[5,10],need:1500,label:'Storeroom'},
+  startChunks:['name','time'],
+  chunks:{
+   name:Z('你 叫 什么 名字 ？','What’s your name?'),
+   time:Z('现在 几 点 ？','What time is it now?'),
+   waterOff:Z('水 几 点 没有 了 ？','What time does the water stop?'),
+   home:Z('你 几 点 回 家 ？','What time do you go home?')
+  },
+  clues:[
+   {id:'clock',kind:'Clock',x:14,y:6,spr:'clock',where:'on a post just right of the main path',
+    s:Z('现在 ： 五 点 五十 分 。','Now: 5:50.'),
+    check:{q:Z('现在 几 点 ？','What time is it now?'),opts:['五 点 五十 分','六 点 五十 分','五 点 十五 分'],a:0}},
+   {id:'note2',kind:'Li Ming’s note',x:7,y:4,spr:'note',where:'on the railing above the water, left of the path',
+    s:Z('星期一 ： 六 点 ， 没有 水 。 星期二 ： 六 点 ， 没有 水 。 星期三 ： 六 点 ， 没有 水 。','Monday: 6 o’clock, no water. Tuesday: 6 o’clock, no water. Wednesday: 6 o’clock, no water.'),
+    check:{q:Z('星期二 几 点 没有 水 ？','On Tuesday, what time was there no water?'),opts:['五 点','六 点','七 点'],a:1},grants:'waterOff'},
+   {id:'board',kind:'Tea board',x:15,y:9,spr:'board',where:'in front of the tea house',
+    s:Z('刘 先生 的 茶 ： 一杯 三 块 。 下午 六 点 ， 我 回 家 。','Mr. Liu’s tea: 3 kuai a cup. At 6 pm I go home.'),
+    check:{q:Z('刘 先生 几 点 回 家 ？','What time does Mr. Liu go home?'),opts:['三 点','六 点','八 点'],a:1},grants:'home'},
+   {id:'sheet',kind:'Work sheet (XP room)',x:4,y:8,spr:'note',room:true,where:'in the locked storeroom',
+    s:Z('工作 ： 下午 六 点 。 十 分钟 。','Work: 6 pm. 10 minutes.'),
+    check:{q:Z('工作 几 分钟 ？','How many minutes is the work?'),opts:['五 分钟','十 分钟','六 分钟'],a:1}}
+  ],
+  npcs:[
+   {id:'zhou',zh:'周小姐',py:'Zhōu xiǎojiě',en:'Miss Zhou',role:'Comes for spring water',x:17,y:4,pal:{h:'#1e1512',s:'#f2c8a2',c:'#e07a8f',p:'#3b3b52'},long:true,
+    intro:Z('你好 ！ 现在 这儿 的 水 很 少 。','Hello! The water here is low right now.'),
+    greet:Z('你好 ！','Hello!'),
+    topics:{
+     name:Z('我 是 周 小姐 。 我 来 这儿 喝 水 。','I’m Miss Zhou. I come here to drink the water.'),
+     time:Z('我 看看 … 现在 五 点 五十 分 。','Let me look… it’s 5:50 now.'),
+     waterOff:Z('昨天 下午 六 点 ， 水 没有 了 。','Yesterday at 6 pm, the water stopped.'),
+     home:Z('我 七 点 回 家 。','I go home at 7.')},
+    bribe:Z('六 点 ， 我 看见 一个 先生 。 他 买 了 很 多 水 。','At 6, I saw a man. He bought a lot of water.')},
+   {id:'liu',zh:'刘先生',py:'Liú xiānsheng',en:'Mr. Liu',role:'Sells tea by the spring',x:17,y:9,pal:{h:'#5a5a58',s:'#e3b088',c:'#3d7a55',p:'#3a3328'},
+    intro:Z('你好 ！ 请 喝 茶 ！','Hello! Have some tea!'),
+    greet:Z('请 喝 茶 ！','Have some tea!'),
+    topics:{
+     name:Z('我 是 刘 先生 。 我 的 茶 很 好 ！','I’m Mr. Liu. My tea is very good!'),
+     time:Z('现在 ？ 五 点 五十 分 。','Now? 5:50.'),
+     waterOff:Z('星期一 、 星期二 、 星期三 ， 都 是 六 点 ！','Monday, Tuesday, Wednesday: always at 6!'),
+     home:Z('我 六 点 回 家 。 六 点 没有 水 ， 没有 人 喝 茶 。','I go home at 6. At 6 there’s no water, so nobody drinks tea.')},
+    bribe:Z('那个 先生 在 前面 的 饭店 工作 。','That man works at the restaurant up ahead.')},
+   {id:'yue',zh:'小月',py:'Xiǎo Yuè',en:'Xiao Yue',role:'A girl, 8 years old',x:9,y:9,pal:{h:'#2b1a14',s:'#f4cfaa',c:'#e8b84a',p:'#7a4a8a'},kid:true,
+    intro:Z('我 八 岁 。 我 会 写 字 ！','I’m eight. I can write characters!'),
+    greet:Z('你好 ！','Hi!'),
+    topics:{
+     name:Z('我 叫 小月 。 我 是 学生 。','My name is Xiao Yue. I’m a student.'),
+     time:Z('你 看 那儿 ！','Look over there!'),
+     waterOff:Z('六 点 ！ 我 和 妈妈 都 看见 了 。','At 6! Mom and I both saw it.'),
+     home:Z('我 和 妈妈 六 点 回 家 。','Mom and I go home at 6.')},
+    bribe:Z('那个 先生 有 很 多 杯子 ！','That man has lots of cups!')}
+  ],
+  solve:[
+   {q:Z('水 几 点 没有 了 ？','What time does the water stop?'),opts:['五 点','六 点','七 点'],a:1,ev:['note2'],
+    hint:'Li Ming left a note on the railing above the water.'},
+   {q:Z('现在 几 点 ？','What time is it now?'),opts:['五 点 十 分','五 点 五十 分','六 点 十 分'],a:1,ev:['clock'],
+    hint:'There’s a clock on a post near the main path.'}
+  ],
+  epilogue:{s:Z('六 点 ， 水 没有 了 。','At 6, the water stopped.'),
+   en:'You wait 十分钟. At 六点 the three tiger heads go quiet. Someone is switching the springs off on purpose. A man carrying lots of water walks off toward Furong Street.'},
+  next:null
+ }
+};
+
+/* ---------------- State ---------------- */
+const KEY='tiantian-trial-v1';
+const XP_CLUE=100, XP_ASK=25, XP_REPLY=50, XP_SOLVEQ=50, XP_FIRST=300, XP_LATE=100, XP_REVIEW=10;
+function fresh(){
+  const cs={};for(const id in CASES)cs[id]={clues:{},asked:{},bribed:{},met:{},answered:{},roomOpen:false,firstTry:true,prog:0};
+  return {v:1,xp:0,gems:1,miles:0,py:true,solved:{},cases:cs,notes:[],words:{},people:{},review:{d:'',n:0}};
+}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===1)return s;}}catch(e){}return null;}
+let S=(window.claude&&window.claude.hot&&window.claude.hot.data&&window.claude.hot.data.S)||load()||fresh();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(()=>({S}));}catch(e){}
+
+const $=id=>document.getElementById(id);
+function toast(t,cls){const d=document.createElement('div');d.className='toast '+(cls||'');d.textContent=t;$('toasts').appendChild(d);setTimeout(()=>d.remove(),2900);}
+function addXP(n,why){
+  S.xp+=n;toast('+'+n+' XP'+(why?' · '+why:''));
+  while(Math.floor(S.xp/1000)>S.miles){S.miles++;S.gems++;setTimeout(()=>toast('◆ +1 Diamond (1,000 XP)','gem'),300);}
+  save();hud();
+}
+function hud(){
+  $('xp').textContent=S.xp.toLocaleString();
+  $('lv').textContent='Lv '+(Math.floor(S.xp/300)+1);
+  const r=S.xp%1000;$('xpbar').style.width=(r/10)+'%';
+  $('nextgem').textContent=(1000-r).toLocaleString()+' to next ◆';
+  $('gems').textContent=S.gems;
+  $('btnPy').setAttribute('aria-pressed',S.py?'true':'false');
+  document.body.classList.toggle('nopy',!S.py);
+}
+
+/* ---------------- Sentence rendering ---------------- */
+function toks(zh){return zh.split(' ').filter(Boolean);}
+function pyOf(t,next){
+  const e=LEX[t];if(!e)return '';
+  if(t==='不'&&next&&LEX[next]&&/^[^\s]*?[àèìòùǜ]/.test(LEX[next][0].split(' ')[0]))return 'bú';
+  return e[0];
+}
+function sentEl(zh,opts){
+  opts=opts||{};const d=document.createElement('div');d.className='zh'+(opts.sm?' sm':'');
+  const ts=toks(zh);
+  ts.forEach((t,i)=>{
+    if(PUNCT.test(t)||!LEX[t]){d.appendChild(document.createTextNode(t));return;}
+    const sp=document.createElement('span');sp.className='w'+(LEX[t][2]==='name'?' name':'');
+    const ru=document.createElement('ruby');ru.textContent=t;const rt=document.createElement('rt');rt.textContent=pyOf(t,ts[i+1]);ru.appendChild(rt);sp.appendChild(ru);
+    if(!opts.noGloss){sp.addEventListener('click',ev=>{ev.stopPropagation();showGloss(t);});}
+    d.appendChild(sp);
+  });
+  return d;
+}
+function plain(zh){return toks(zh).join('');}
+function enEl(en){
+  const d=document.createElement('div');d.className='en';if(!en)return d;
+  const b=document.createElement('button');b.textContent='EN';b.type='button';
+  const s=document.createElement('span');s.textContent=en;s.hidden=true;
+  b.onclick=e=>{e.stopPropagation();s.hidden=!s.hidden;};
+  d.append(b,s);return d;
+}
+function showGloss(t){
+  const e=LEX[t];const g=$('gloss');
+  const isNew=!S.words[t]&&e[2]!=='name';
+  if(e[2]!=='name'){S.words[t]=1;save();}
+  g.innerHTML='';const b=document.createElement('b');b.textContent=t;const i=document.createElement('i');i.textContent=e[0];
+  const s=document.createElement('span');s.textContent=e[1];const sm=document.createElement('small');sm.textContent=e[2]==='name'?'Name':(isNew?'Saved to Words':'In your Words');
+  g.append(b,i,s,sm);g.hidden=false;
+  if(bookOpen)renderBook();
+}
+
+/* ---------------- Map + sprites ---------------- */
+const TS=16;let C=null,CS=null,MAP=null,W=0,H=0;
+const cv=$('game'),ctx=cv.getContext('2d');
+const player={x:0,y:0,fx:0,fy:0,from:null,t:1,dir:'down',path:[]};
+const BLOCK=new Set(['T','w','R','~','#','H','h','b','X','D','S']);
+function tileAt(x,y){if(y<0||y>=H||x<0||x>=W)return 'T';return MAP[y][x];}
+function entities(){
+  const e=[];C.npcs.forEach(n=>e.push({type:'npc',x:n.x,y:n.y,o:n}));
+  C.clues.forEach(c=>e.push({type:'clue',x:c.x,y:c.y,o:c}));
+  e.push({type:'door',x:C.room.door[0],y:C.room.door[1]});
+  return e;
+}
+function entAt(x,y){return entities().find(e=>e.x===x&&e.y===y&&!(e.type==='door'&&CS.roomOpen));}
+function blocked(x,y){
+  const t=tileAt(x,y);
+  if(t==='D')return !CS.roomOpen;
+  if(t==='r')return false;
+  if(BLOCK.has(t))return true;
+  const e=entAt(x,y);return !!e&&e.type!=='door';
+}
+function hash(x,y){let h=(x*374761393+y*668265263)^0x5bd1e995;h=(h^(h>>>13))*1274126177;return ((h^(h>>>16))>>>0)/4294967295;}
+function R(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h);}
+function drawTile(t,tx,ty,time){
+  const x=tx*TS,y=ty*TS,r=hash(tx,ty);
+  const grass=()=>{R(x,y,TS,TS,'#3f8f55');if(r>.3)R(x+((r*97)|0)%13,y+((r*53)|0)%13,2,1,'#5aa86a');if(r>.6)R(x+((r*31)|0)%12+2,y+((r*71)|0)%12+2,1,2,'#2f7a46');};
+  switch(t){
+   case '.':grass();break;
+   case 'f':grass();[[3,4],[10,9],[6,11]].forEach(([a,b],i)=>{R(x+a,y+b,3,3,i%2?'#ec8fab':'#f6d36b');R(x+a+1,y+b+1,1,1,'#fff6e0');});break;
+   case ',':case 'G':R(x,y,TS,TS,'#c9b996');R(x,y+7,TS,1,'#b3a27d');R(x+((ty%2)?4:11),y,1,7,'#b3a27d');R(x+((ty%2)?11:4),y+8,1,8,'#b3a27d');
+     if(t==='G'){R(x+1,y,3,TS,'#c9412f');R(x+12,y,3,TS,'#c9412f');R(x,y,TS,3,'#e0a23a');}break;
+   case '~':{R(x,y,TS,TS,'#2c8ea3');const p=Math.floor(time/300+tx+ty*2)%4;R(x+p*3,y+4+(tx%2)*5,5,1,'#6fd3dd');R(x+((p+2)%4)*3+2,y+11,4,1,'#4fb7c6');break;}
+   case 'T':grass();R(x+1,y+2,14,11,'#1f5a37');R(x+3,y+1,10,2,'#2a6e43');R(x+3,y+4,4,3,'#2f7a46');R(x+7,y+13,2,3,'#5a3d22');break;
+   case 'w':grass();R(x+2,y+1,12,8,'#5fa35a');for(let i=0;i<6;i++)R(x+3+i*2,y+8,1,5+((i*7+tx)%3),'#4b8d4a');R(x+7,y+12,2,4,'#5a3d22');break;
+   case 'R':R(x,y,TS,TS,(ty===3&&C.id==='heihu')?'#2c8ea3':'#3f8f55');R(x,y+5,TS,3,'#d9d3c3');R(x,y+12,TS,2,'#b9b2a0');R(x+1,y+3,3,11,'#e8e3d6');R(x+12,y+3,3,11,'#e8e3d6');break;
+   case '#':R(x,y,TS,TS,'#6d7377');R(x,y+7,TS,1,'#565b5e');R(x+((ty%2)?5:11),y,1,7,'#565b5e');R(x+((ty%2)?12:3),y+8,1,8,'#565b5e');R(x,y,TS,1,'#868c90');break;
+   case 'r':R(x,y,TS,TS,'#8a5a32');R(x,y+5,TS,1,'#74492a');R(x,y+11,TS,1,'#74492a');break;
+   case 'D':if(CS.roomOpen){R(x,y,TS,TS,'#8a5a32');R(x,y,2,TS,'#5a3a20');R(x+14,y,2,TS,'#5a3a20');}else{R(x,y,TS,TS,'#9a2f22');R(x+2,y+2,12,12,'#b8412e');R(x+7,y+2,2,12,'#7a2418');R(x+5,y+7,6,5,'#eab84b');R(x+7,y+8,2,2,'#2b2418');R(x+6,y+4,4,3,'#eab84b');R(x+7,y+5,2,2,'#9a2f22');}break;
+   case 'H':R(x,y,TS,TS,'#3e4c63');for(let i=0;i<TS;i+=4)R(x+i,y,1,TS,'#2f3a4e');R(x,y+13,TS,3,'#2a3346');if(ty>0&&MAP[ty-1][tx]!=='H'){R(x,y,TS,2,'#556683');}break;
+   case 'h':R(x,y,TS,TS,'#e8dcc0');R(x,y,TS,2,'#b8412e');R(x+4,y+5,8,6,'#5a4630');R(x+5,y+6,6,4,'#f6d36b');R(x+7,y+6,2,4,'#5a4630');break;
+   case 'b':grass();R(x+1,y+6,14,4,'#9a6a3a');R(x+1,y+6,14,1,'#b8844e');R(x+2,y+10,2,4,'#6a4422');R(x+12,y+10,2,4,'#6a4422');break;
+   case 'X':R(x,y,TS,TS,'#5c6266');R(x+2,y+2,12,11,'#2c2f31');R(x+4,y+5,2,2,'#eab84b');R(x+10,y+5,2,2,'#eab84b');R(x+6,y+9,4,3,'#111');R(x+3,y+2,2,2,'#5c6266');R(x+11,y+2,2,2,'#5c6266');break;
+   default:grass();
+  }
+}
+const PERSON=[
+'................','.....hhhhhh.....','....hhhhhhhh....','....hssssssh....','....sesssses....','....ssssssss....',
+'.....ssssss.....','....cccccccc....','...cccccccccc...','...sccccccccs...','...sccccccccs...','....cccccccc....',
+'....pppppppp....','....ppp..ppp....','....ppp..ppp....','....kkk..kkk....'];
+function drawPerson(g,x,y,pal,o){
+  o=o||{};const rows=PERSON;
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++){
+    const ch=rows[j][i];if(ch==='.')continue;
+    let col=ch==='h'?pal.h:ch==='s'?pal.s:ch==='e'?'#1b1410':ch==='c'?pal.c:ch==='p'?pal.p:'#1b1410';
+    if(o.kid&&j<3)continue;
+    g.fillStyle=col;g.fillRect(x+i,y+j+(o.kid?2:0),1,1);
+  }
+  if(o.long){g.fillStyle=pal.h;g.fillRect(x+3,y+3,1,5);g.fillRect(x+12,y+3,1,5);}
+  if(o.bun){g.fillStyle=pal.h;g.fillRect(x+6,y,4,2);}
+  if(o.cap){g.fillStyle='#c9412f';g.fillRect(x+4,y+1,8,2);g.fillRect(x+3,y+3,10,1);}
+}
+function drawClue(c,time){
+  const x=c.x*TS,y=c.y*TS,found=CS.clues[c.id];
+  if(c.spr==='tag'){R(x+3,y+3,10,7,'#fffaf0');R(x+3,y+3,10,2,'#c9412f');R(x+5,y+7,6,1,'#7a6a48');}
+  else if(c.spr==='note'){R(x+3,y+2,10,12,'#fffaf0');R(x+3,y+2,10,1,'#d9cba6');for(let i=0;i<4;i++)R(x+5,y+5+i*2,6,1,'#9a8a68');R(x+7,y+1,2,2,'#c9412f');}
+  else if(c.spr==='call'){const p=Math.floor(time/250)%3;R(x+6,y+6,4,4,'#fffaf0');for(let i=0;i<=p;i++){R(x+11+i*2,y+5-i,1,6+i*2,'#fffaf0');R(x+4-i*2,y+5-i,1,6+i*2,'#fffaf0');}}
+  else if(c.spr==='clock'){R(x+7,y+8,2,8,'#5a3d22');R(x+2,y,12,10,'#2b2418');R(x+3,y+1,10,8,'#fffaf0');R(x+7,y+2,1,3,'#2b2418');R(x+7,y+5,4,1,'#2b2418');}
+  else if(c.spr==='board'){R(x+2,y+10,2,6,'#5a3d22');R(x+12,y+10,2,6,'#5a3d22');R(x+1,y+2,14,9,'#8a5a32');R(x+2,y+3,12,7,'#3a2a1a');R(x+4,y+5,8,1,'#f4ebd3');R(x+4,y+7,5,1,'#f4ebd3');}
+  if(!found){const on=Math.floor(time/400+c.x)%2;if(on){R(x+13,y,1,5,'#ffe9a0');R(x+11,y+2,5,1,'#ffe9a0');}}
+}
+function npcStatus(n){
+  if(!CS.met[n.id])return '!';
+  if(n.ask&&!CS.answered[n.id])return '!';
+  const own=ownedChunks();let po=false,pl=false;
+  for(const k in n.topics){if(CS.asked[n.id+':'+k])continue;if(own.includes(k))po=true;else pl=true;}
+  return po?'!':pl?'…':'✓';
+}
+function bubble(x,y,s,time){
+  const col=s==='!'?'#eab84b':s==='✓'?'#6cc47a':'#c9cfcd';const dy=s==='!'?Math.round(Math.sin(time/200)*1.5):0;
+  R(x+4,y-11+dy,9,9,'#1b1410');R(x+5,y-10+dy,7,7,col);R(x+7,y-3+dy,2,2,'#1b1410');
+  ctx.fillStyle='#1b1410';
+  if(s==='!'){R(x+8,y-9+dy,1,3,'#1b1410');R(x+8,y-5+dy,1,1,'#1b1410');}
+  else if(s==='…'){R(x+6,y-6+dy,1,1,'#1b1410');R(x+8,y-6+dy,1,1,'#1b1410');R(x+10,y-6+dy,1,1,'#1b1410');}
+  else {R(x+6,y-7+dy,1,1,'#1b1410');R(x+7,y-6+dy,1,1,'#1b1410');R(x+8,y-7+dy,1,1,'#1b1410');R(x+9,y-8+dy,1,1,'#1b1410');R(x+10,y-9+dy,1,1,'#1b1410');}
+}
+function render(time){
+  if(!C)return;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)drawTile(MAP[y][x],x,y,time);
+  if(C.spouts)C.spouts.forEach(([sx,sy],i)=>{const h=4+Math.round((Math.sin(time/180+i*2)+1)*2.5);const px=sx*TS+8,py=sy*TS+8;R(px-3,py-h,6,h+2,'#bfeff3');R(px-1,py-h-2,2,2,'#ffffff');R(px-6,py+1,12,2,'#8fdde6');});
+  if(C.tigers)C.tigers.forEach((tx,i)=>{const on=!S.solved.heihu;if(!on)return;const px=tx*TS+7;for(let k=0;k<3;k++){const o=Math.floor(time/120+k*3+i)%6;R(px,TS*1+o+k*5-4,2,3,'#d8f6f8');}});
+  // entities sorted by y
+  const list=[];C.clues.forEach(c=>list.push({y:c.y,f:()=>drawClue(c,time)}));
+  C.npcs.forEach(n=>list.push({y:n.y,f:()=>{drawPerson(ctx,n.x*TS,n.y*TS,n.pal,n);bubble(n.x*TS,n.y*TS,npcStatus(n),time);}}));
+  // player interpolation
+  let px=player.x,py=player.y;
+  if(player.t<1){px=player.from[0]+(player.x-player.from[0])*player.t;py=player.from[1]+(player.y-player.from[1])*player.t;}
+  list.push({y:py,f:()=>{drawPerson(ctx,Math.round(px*TS),Math.round(py*TS),{h:'#2a1d18',s:'#f1c9a3',c:'#2f9e8a',p:'#2b3550'},{cap:true});const fx=player.dir;ctx.fillStyle='#eab84b';const bx=Math.round(px*TS),by=Math.round(py*TS);if(fx==='up')R(bx+7,by-3,2,2,'#eab84b');}});
+  list.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+  if(!CS.roomOpen){const [dx,dy]=C.room.door;ctx.font='8px "Pixelify Sans", monospace';ctx.fillStyle='#1b1410';const lbl=C.room.need+' XP';const tw=ctx.measureText(lbl).width;R(dx*TS+8-tw/2-2,dy*TS+TS+1,tw+4,9,'#eab84b');ctx.fillText(lbl,dx*TS+8-tw/2,dy*TS+TS+8);}
+}
+
+/* ---------------- Movement ---------------- */
+const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+const held=new Set();let lastStep=0;
+function tryStep(d){
+  player.dir=d;const [dx,dy]=DIRS[d];const nx=player.x+dx,ny=player.y+dy;
+  if(blocked(nx,ny))return false;
+  player.from=[player.x,player.y];player.x=nx;player.y=ny;player.t=0;
+  if(tileAt(nx,ny)==='G'){setTimeout(()=>{if(player.x===nx&&player.y===ny)goCity();},160);}
+  return true;
+}
+function facing(){const [dx,dy]=DIRS[player.dir];return [player.x+dx,player.y+dy];}
+function interact(){
+  if(panelOpen()||!C)return;
+  const [fx,fy]=facing();let e=entAt(fx,fy);
+  if(!e){for(const d in DIRS){const [dx,dy]=DIRS[d];const c=entAt(player.x+dx,player.y+dy);if(c){e=c;player.dir=d;break;}}}
+  if(!e){toast('Nothing here. Walk up to someone or something.');return;}
+  if(e.type==='npc')talk(e.o);else if(e.type==='clue')readClue(e.o);else door();
+}
+function bfs(tx,ty,goalAdj){
+  const key=(x,y)=>x+','+y;const prev={};const q=[[player.x,player.y]];prev[key(player.x,player.y)]=null;
+  while(q.length){const [x,y]=q.shift();
+    const ok=goalAdj?(Math.abs(x-tx)+Math.abs(y-ty)===1):(x===tx&&y===ty);
+    if(ok){const path=[];let k=key(x,y);while(prev[k]){const [a,b,d]=prev[k];path.unshift(d);k=key(a,b);}return path;}
+    for(const d in DIRS){const [dx,dy]=DIRS[d];const nx=x+dx,ny=y+dy;const k=key(nx,ny);if(k in prev)continue;if(blocked(nx,ny))continue;prev[k]=[x,y,d];q.push([nx,ny]);}
+  }return null;
+}
+let tapTarget=null;
+cv.addEventListener('click',ev=>{
+  if(panelOpen()||!C)return;
+  const r=cv.getBoundingClientRect();const tx=Math.floor((ev.clientX-r.left)/r.width*W),ty=Math.floor((ev.clientY-r.top)/r.height*H);
+  const e=entAt(tx,ty);
+  if(e){if(Math.abs(e.x-player.x)+Math.abs(e.y-player.y)===1){player.dir=Object.keys(DIRS).find(d=>DIRS[d][0]===e.x-player.x&&DIRS[d][1]===e.y-player.y);interact();return;}
+    const p=bfs(tx,ty,true);if(p){player.path=p;tapTarget=e;}return;}
+  const p=bfs(tx,ty,false);if(p){player.path=p;tapTarget=null;}
+});
+function loop(time){
+  if(C){
+    if(player.t<1)player.t=Math.min(1,player.t+0.16);
+    else if(!panelOpen()&&!bookOpen){
+      if(player.path.length){const d=player.path.shift();if(!tryStep(d))player.path=[];
+        else if(!player.path.length&&tapTarget){const e=tapTarget;tapTarget=null;setTimeout(()=>{player.dir=Object.keys(DIRS).find(k=>DIRS[k][0]===e.x-player.x&&DIRS[k][1]===e.y-player.y)||player.dir;interact();},180);}}
+      else if(held.size&&time-lastStep>40){const d=[...held].pop();tryStep(d);lastStep=time;}
+    }
+    render(time);
+  }
+  requestAnimationFrame(loop);
+}
+const KEYMAP={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right',W:'up',S:'down',A:'left',D:'right'};
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(bookOpen){if(e.key==='Escape'||e.key==='n'||e.key==='N'){closeBook();e.preventDefault();}return;}
+  if(panelOpen()){
+    if(/^[1-9]$/.test(e.key)){const b=[...$('choices').querySelectorAll('.choice:not(:disabled)')][+e.key-1];if(b){b.click();e.preventDefault();}return;}
+    if(e.key===' '||e.key==='Enter'){const bs=[...$('choices').querySelectorAll('.choice:not(:disabled)')];if(bs.length===1){bs[0].click();e.preventDefault();}else e.preventDefault();return;}
+    if(e.key==='Escape'){closePanel();e.preventDefault();}
+    return;
+  }
+  if(e.key==='n'||e.key==='N'){openBook();return;}
+  if(!C)return;
+  if(KEYMAP[e.key]){held.add(KEYMAP[e.key]);player.path=[];e.preventDefault();}
+  else if(e.key===' '||e.key==='Enter'){interact();e.preventDefault();}
+  else if(e.key==='Escape'){goCity();}
+});
+document.addEventListener('keyup',e=>{if(KEYMAP[e.key])held.delete(KEYMAP[e.key]);});
+window.addEventListener('blur',()=>held.clear());
+document.querySelectorAll('.dpad button').forEach(b=>{
+  const d=b.dataset.d;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();held.add(d);player.path=[];});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>held.delete(d)));
+});
+$('abtn').addEventListener('click',()=>{if(panelOpen()){const bs=[...$('choices').querySelectorAll('.choice:not(:disabled)')];if(bs.length===1)bs[0].click();}else interact();});
+
+/* ---------------- Panel ---------------- */
+function panelOpen(){return !$('panel').hidden;}
+function openPanel(title){$('ptitle').textContent=title;$('lines').innerHTML='';$('choices').innerHTML='';$('gloss').hidden=true;$('panel').hidden=false;$('districtScene').classList.add('talking');held.clear();requestAnimationFrame(()=>{const r=$('panel').getBoundingClientRect();if(r.bottom>innerHeight)$('panel').scrollIntoView({block:'end',behavior:'smooth'});});}
+function closePanel(){$('panel').hidden=true;$('districtScene').classList.remove('talking');}
+$('pclose').onclick=closePanel;
+function scrollLines(){const l=$('lines');l.scrollTop=l.scrollHeight;}
+function sayLine(speaker,s,cls){
+  const d=document.createElement('div');d.className='line '+(cls||'');
+  const sp=document.createElement('div');sp.className='sp';sp.textContent=speaker;
+  const b=document.createElement('div');b.className='body';b.append(sentEl(s.zh),enEl(s.en));
+  d.append(sp,b);$('lines').appendChild(d);scrollLines();return d;
+}
+function sysLine(t,cls){const d=document.createElement('div');d.className='line sys '+(cls||'');d.textContent=t;$('lines').appendChild(d);scrollLines();return d;}
+function paperLine(kind,s){
+  const d=document.createElement('div');d.className='paperclue';
+  const k=document.createElement('div');k.className='kind';k.textContent=kind;
+  d.append(k,sentEl(s.zh),enEl(s.en));$('lines').appendChild(d);scrollLines();return d;
+}
+function choices(list){
+  const box=$('choices');box.innerHTML='';
+  list.forEach((c,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='choice';if(c.disabled)b.disabled=true;
+    const k=document.createElement('span');k.className='k';k.textContent=c.disabled?'':(i+1);
+    const l=document.createElement('span');l.className='lbl';
+    if(c.zh)l.appendChild(sentEl(c.zh,{sm:true,noGloss:true}));else l.textContent=c.label;
+    b.append(k,l);
+    if(c.tag){const t=document.createElement('span');t.className='tag '+(c.tagCls||'');t.textContent=c.tag;b.appendChild(t);}
+    b.onclick=()=>c.on(b);box.appendChild(b);
+  });
+  let n=1;box.querySelectorAll('.choice').forEach(b=>{if(!b.disabled)b.querySelector('.k').textContent=n++;});
+}
+function note(id,src,s){if(S.notes.some(n=>n.id===id))return;S.notes.push({id,c:C.id,src,zh:s.zh,en:s.en});save();}
+function ownedChunks(){const o=[...C.startChunks];C.clues.forEach(c=>{if(c.grants&&CS.clues[c.id])o.push(c.grants);});return o;}
+
+/* ---------------- Talk ---------------- */
+function npcLabel(n){return n.zh+' · '+n.en;}
+function talk(n){
+  openPanel(npcLabel(n));
+  if(!S.people[n.id]){S.people[n.id]=1;save();}
+  if(!CS.met[n.id]){CS.met[n.id]=1;save();sayLine(n.zh,n.intro);note(n.id+':intro',n.zh,n.intro);}
+  else sayLine(n.zh,n.ask&&!CS.answered[n.id]?n.intro:n.greet);
+  if(n.ask&&!CS.answered[n.id])return askFlow(n);
+  menu(n);
+}
+function askFlow(n){
+  sayLine(n.zh,n.ask.q);
+  choices(n.ask.opts.map((o,i)=>({zh:o,on:b=>{
+    if(i!==n.ask.a){b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');sysLine(n.ask.miss,'bad');return;}
+    sayLine('你',Z(o,'My name is Tiantian.'),'you');CS.answered[n.id]=1;addXP(XP_REPLY,'answered in Chinese');
+    sayLine(n.zh,n.ask.after);menu(n);
+  }})));
+}
+function menu(n){
+  const own=ownedChunks();const list=[];let locked=0;
+  for(const k in n.topics){
+    if(!own.includes(k)){locked++;continue;}
+    const asked=CS.asked[n.id+':'+k];
+    list.push({zh:C.chunks[k].zh,tag:asked?null:'+'+XP_ASK+' XP',on:()=>{
+      sayLine('你',C.chunks[k],'you');sayLine(n.zh,n.topics[k]);
+      if(!asked){CS.asked[n.id+':'+k]=1;note(n.id+':'+k,n.zh,n.topics[k]);addXP(XP_ASK,'asked in Chinese');}
+      menu(n);
+    }});
+  }
+  if(locked)list.push({label:'? Find more clues to unlock '+locked+' more question'+(locked>1?'s':''),disabled:true});
+  if(!CS.bribed[n.id])list.push({label:'Bribe for one more sentence',tag:'1 ◆',tagCls:'gem',on:()=>bribe(n)});
+  list.push({zh:'再见 ！',on:closePanel});
+  choices(list);
+}
+function bribe(n){
+  if(S.gems<1){sysLine('You need a Diamond. Every 1,000 XP gives you one.','bad');return;}
+  choices([
+   {label:'Spend 1 Diamond',tag:'◆ '+S.gems+' → '+(S.gems-1),tagCls:'gem',on:()=>{
+     S.gems--;CS.bribed[n.id]=1;save();hud();sysLine(n.en+' leans in…','good');sayLine(n.zh,n.bribe);note(n.id+':bribe',n.zh+' (bribe)',n.bribe);menu(n);}},
+   {label:'Keep my Diamond',on:()=>menu(n)}
+  ]);
+}
+
+/* ---------------- Clues ---------------- */
+function readClue(c){
+  openPanel(c.kind);
+  const p=paperLine(c.kind,c.s);
+  if(CS.clues[c.id]){sysLine('Already in your notebook.');choices([{label:'Close',on:closePanel}]);return;}
+  sysLine('Check: answer from what you read.');
+  sayLine('?',c.check.q);
+  choices(c.check.opts.map((o,i)=>({zh:o,on:b=>{
+    if(i!==c.check.a){b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');p.classList.remove('flash');void p.offsetWidth;p.classList.add('flash');sysLine('Not quite. Read the note again, the answer is in there.','bad');return;}
+    CS.clues[c.id]=1;note(c.id,c.kind,c.s);addXP(XP_CLUE,'clue read');
+    sysLine('Right! Saved to your notebook.','good');
+    if(c.grants){const q=C.chunks[c.grants];setTimeout(()=>toast('New question: '+plain(q.zh),'q'),350);sysLine('New question unlocked: '+plain(q.zh)+' ('+q.en+')','good');}
+    choices([{label:'Close',on:closePanel}]);
+  }})));
+}
+function door(){
+  const need=C.room.need;
+  if(S.xp>=need){CS.roomOpen=true;save();toast(C.room.label+' unlocked with '+need+' XP');return;}
+  openPanel(C.room.label);
+  sysLine('Locked. You need '+need.toLocaleString()+' XP to get in. You have '+S.xp.toLocaleString()+'.');
+  sysLine('Earn XP by reading clues and asking people questions in Chinese.');
+  choices([{label:'OK',on:closePanel}]);
+}
+
+/* ---------------- Solve ---------------- */
+function openSolve(){
+  if(!C)return;
+  openPanel('Solve: '+C.question);
+  if(S.solved[C.id]){finishView(false);return;}
+  solveStep();
+}
+function evidence(q){
+  const found=q.ev.filter(id=>CS.clues[id]);
+  if(!found.length){sysLine('You haven’t found the sentence for this yet. '+q.hint,'bad');return;}
+  sysLine('Look again at '+(found.length>1?'these sentences':'this sentence')+':');
+  found.forEach(id=>{const c=C.clues.find(x=>x.id===id);const p=paperLine(c.kind,c.s);p.querySelector('.zh').classList.add('hl');});
+}
+function solveStep(){
+  const q=C.solve[CS.prog];
+  sysLine('Question '+(CS.prog+1)+' of '+C.solve.length);
+  sayLine('?',q.q);
+  const list=q.opts.map((o,i)=>({zh:o,on:b=>{
+    if(i!==q.a){CS.firstTry=false;save();b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');evidence(q);return;}
+    sayLine('你',Z(o,''),'you');addXP(XP_SOLVEQ,'correct');CS.prog++;save();
+    if(CS.prog<C.solve.length)solveStep();else finish();
+  }}));
+  list.push({label:'Hint (free)',on:()=>{const f=q.ev.filter(id=>CS.clues[id]);if(f.length){sysLine('Hint: the answer is in a sentence you already have.','good');f.forEach(id=>{const c=C.clues.find(x=>x.id===id);const p=paperLine(c.kind,c.s);p.querySelector('.zh').classList.add('hl');});}else sysLine('Hint: '+q.hint,'good');}});
+  choices(list);
+}
+function finish(){
+  S.solved[C.id]=true;save();
+  addXP(CS.firstTry?XP_FIRST:XP_LATE,CS.firstTry?'solved on first try':'case solved');
+  finishView(true);
+}
+function finishView(fresh){
+  const d=document.createElement('div');d.style.cssText='display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:6px 0';
+  const st=document.createElement('div');st.className='stamp';st.textContent=C.zh;
+  const t=document.createElement('div');t.style.cssText='flex:1;min-width:200px;font-size:14px;line-height:1.5';
+  t.textContent=(fresh?'Case solved! Passport stamp earned. ':'')+C.epilogue.en;
+  d.append(st,t);$('lines').appendChild(d);
+  sayLine('',C.epilogue.s);
+  const nx=C.next?CASES[C.next]:null;
+  choices([{label:nx?'Back to the map: '+nx.en+' is open':'Back to the map (Furong Street is next, locked in this trial)',on:()=>{closePanel();goCity();}}]);
+}
+
+/* ---------------- Scenes ---------------- */
+function enter(id){
+  C=CASES[id];CS=S.cases[id];MAP=C.map;W=MAP[0].length;H=MAP.length;
+  cv.width=W*TS;cv.height=H*TS;
+  player.x=C.spawn[0];player.y=C.spawn[1];player.t=1;player.dir='up';player.path=[];
+  $('cityScene').hidden=true;$('districtScene').hidden=false;$('btnMap').hidden=false;$('btnSolve').hidden=false;
+  $('scenetitle').innerHTML='';$('scenetitle').append(C.zh+' '+C.en);const sp=document.createElement('span');sp.textContent='Case: '+C.question;$('scenetitle').appendChild(sp);
+  closePanel();
+  if(!CS.visited){CS.visited=1;save();
+    openPanel(C.en+' · HSK 1 · '+C.topic);
+    sysLine('Case: '+C.question);
+    sysLine('Walk up to people with ! and press Space (or tap them). Sparkles mark clues. When you’re ready, press “Solve the case”.');
+    choices([{label:'Start',on:closePanel}]);
+  }
+}
+function goCity(){
+  C=null;CS=null;closePanel();
+  $('cityScene').hidden=false;$('districtScene').hidden=true;$('btnMap').hidden=true;$('btnSolve').hidden=true;
+  $('scenetitle').textContent='济南 Jinan';
+  drawCity();renderCity();
+}
+function unlocked(d){if(!d.id)return false;if(d.id==='baotu')return true;if(d.id==='heihu')return !!S.solved.baotu;return false;}
+function renderCity(){
+  const st=$('cityStage');st.querySelectorAll('.pin').forEach(p=>p.remove());
+  const dl=$('dlist');dl.innerHTML='';
+  DISTRICTS.forEach(d=>{
+    const ok=unlocked(d),done=d.id&&S.solved[d.id];
+    const p=document.createElement('button');p.className='pin '+(done?'done':ok?'open':'locked');p.style.left=d.x+'%';p.style.top=d.y+'%';p.textContent=d.n;p.title=d.en;p.setAttribute('aria-label',d.n+'. '+d.en);
+    p.onclick=()=>pick(d);st.appendChild(p);
+    const r=document.createElement('button');r.className='drow';r.onclick=()=>pick(d);
+    r.innerHTML='<span class="n"></span><span class="nm"><b></b><div></div></span><span class="chip"></span>';
+    r.querySelector('.n').textContent=d.n;r.querySelector('b').textContent=d.zh+' '+d.en;r.querySelector('.nm div').textContent='HSK 1 · '+d.topic;
+    const ch=r.querySelector('.chip');ch.className='chip '+(done?'done':ok?'play':'lock');ch.textContent=done?'Solved':ok?'Play':'Locked';
+    dl.appendChild(r);
+  });
+  const m=$('mystery');
+  const n=Object.keys(S.solved).length;
+  m.innerHTML='';const b=document.createElement('b');b.textContent='The city mystery: ';m.append(b,document.createTextNode(
+    n===0?'Jinan’s springs are going quiet. Start at Baotu Spring, where Grandma Wang’s cup has gone missing.':
+    n===1?'A student named Li Ming is testing the spring water, and he thinks it’s getting low. Follow him to Black Tiger Spring.':
+    'The springs stop at 6 o’clock every day, on purpose. A man carrying lots of water headed for Furong Street. That’s where the full game picks up.'));
+}
+function pick(d){
+  if(!d.id){toast(d.en+': locked in this trial (HSK 1 · '+d.topic+')');return;}
+  if(!unlocked(d)){toast('Solve Baotu Spring first to open '+d.en);return;}
+  enter(d.id);
+}
+function drawCity(){
+  const c=$('cityCanvas'),g=c.getContext('2d');const w=c.width,h=c.height;
+  const P=(x,y,ww,hh,col)=>{g.fillStyle=col;g.fillRect(x,y,ww,hh);};
+  P(0,0,w,h,'#4f8a58');
+  for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2){const r=hash(x,y);if(r>.93)P(x,y,1,1,'#5f9c64');else if(r<.04)P(x,y,1,1,'#447c4d');}
+  // Yellow River
+  for(let x=0;x<w;x++){const y=8+Math.round(Math.sin(x/18)*3)+Math.round(x/40);P(x,y,1,7,'#c8a24a');P(x,y+2,1,1,'#ddba62');}
+  // city blocks
+  for(let i=0;i<120;i++){const x=(hash(i,7)*w)|0,y=22+((hash(i,9)*(h-40))|0);if(Math.hypot(x-w*.55,y-h*.9)<26)continue;P(x,y,3,2,hash(i,3)>.5?'#c7b796':'#a99c80');}
+  // roads
+  P(0,h*.45,w,1,'#d8cfb6');P(w*.5,20,1,h-30,'#d8cfb6');P(0,h*.7,w,1,'#d8cfb6');P(w*.75,20,1,h-40,'#d8cfb6');
+  // railway to station
+  for(let x=0;x<w*.4;x+=3)P(x,h*.3,2,1,'#3a3328');P(w*.08,h*.27,12,6,'#8a5a32');
+  // Daming Lake
+  g.fillStyle='#2c8ea3';g.beginPath();g.ellipse(w*.46,h*.24,18,8,0,0,7);g.fill();P(w*.4,h*.23,6,1,'#6fd3dd');P(w*.48,h*.26,5,1,'#6fd3dd');
+  // old city moat
+  g.strokeStyle='#2c8ea3';g.lineWidth=2;g.strokeRect(w*.27,h*.33,w*.33,h*.33);
+  // springs dots
+  [[.31,.49],[.55,.62],[.30,.34]].forEach(([a,b])=>{P(w*a-2,h*b-2,4,4,'#6fd3dd');});
+  // Qianfo mountain
+  g.fillStyle='#2f6a3f';g.beginPath();g.moveTo(w*.38,h);g.lineTo(w*.55,h*.76);g.lineTo(w*.72,h);g.fill();
+  g.fillStyle='#255834';g.beginPath();g.moveTo(w*.48,h);g.lineTo(w*.62,h*.82);g.lineTo(w*.8,h);g.fill();
+  // museum
+  P(w*.8,h*.57,10,6,'#d9d3c3');P(w*.8,h*.57,10,2,'#c9412f');
+}
+
+/* ---------------- Notebook ---------------- */
+let bookOpen=false,bookTab='Clues';
+const TABS=['Clues','Words','People','Passport','Review','Settings'];
+function openBook(t){bookOpen=true;if(t)bookTab=t;$('bookOverlay').hidden=false;held.clear();renderBook();}
+function closeBook(){bookOpen=false;$('bookOverlay').hidden=true;}
+$('bookOverlay').addEventListener('click',e=>{if(e.target.id==='bookOverlay')closeBook();});
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function renderBook(){
+  const tabs=$('tabs');tabs.innerHTML='';
+  TABS.forEach(t=>{const b=el('button',null,t);b.setAttribute('role','tab');b.setAttribute('aria-selected',t===bookTab);b.onclick=()=>{bookTab=t;renderBook();};tabs.appendChild(b);});
+  const x=el('button','x','✕ Close');x.onclick=closeBook;tabs.appendChild(x);
+  const body=$('bookbody');body.innerHTML='';
+  if(bookTab==='Clues'){
+    if(!S.notes.length)body.appendChild(el('div','empty','Nothing yet. Every clue you read and every answer you hear is saved here with its sentence.'));
+    ['baotu','heihu'].forEach(cid=>{
+      const ns=S.notes.filter(n=>n.c===cid);if(!ns.length)return;
+      body.appendChild(el('h3',null,CASES[cid].zh+' '+CASES[cid].en));
+      ns.forEach(n=>{const e=el('div','entry');e.append(el('div','src',n.src),sentEl(n.zh,{sm:true,noGloss:true}),enEl(n.en));body.appendChild(e);});
+    });
+  }else if(TABS.indexOf(bookTab)===1){
+    const ws=Object.keys(S.words);
+    body.appendChild(el('div','empty',ws.length?ws.length+' words saved. Tap any word in a sentence to save it.':'Tap any word in a conversation or clue to see its meaning and save it here.'));
+    const box=el('div','words');ws.forEach(w=>{const d=el('div','word');d.append(el('b',null,w),el('i',null,LEX[w][0]),el('span',null,LEX[w][1]));box.appendChild(d);});body.appendChild(box);
+  }else if(bookTab==='People'){
+    const all=[];for(const cid in CASES)CASES[cid].npcs.forEach(n=>{if(S.people[n.id])all.push(n);});
+    if(!all.length)body.appendChild(el('div','empty','Talk to someone to add them here.'));
+    const box=el('div','people');
+    all.forEach(n=>{const d=el('div','person');const c=document.createElement('canvas');c.width=16;c.height=16;drawPerson(c.getContext('2d'),0,0,n.pal,n);c.style.imageRendering='pixelated';
+      const t=el('div');t.append(el('b',null,n.zh+' '),el('span',null,n.py));t.appendChild(el('div',null,n.en+' · '+n.role));d.append(c,t);box.appendChild(d);});
+    body.appendChild(box);
+  }else if(bookTab==='Passport'){
+    body.appendChild(el('div','empty','One stamp for each solved case.'));
+    const box=el('div','passport');
+    DISTRICTS.forEach(d=>{const s=el('div','slot');if(d.id&&S.solved[d.id]){s.appendChild(el('div','stamp',d.zh));}else s.textContent=d.n+'. '+d.en;box.appendChild(s);});
+    body.appendChild(box);
+  }else if(bookTab==='Review'){renderReview(body);}
+  else{
+    const r1=el('div','setrow');const pb=el('button','pbtn',S.py?'Pinyin: on':'Pinyin: off');pb.onclick=()=>{S.py=!S.py;save();hud();renderBook();};r1.append(pb);body.appendChild(r1);
+    const r2=el('div','setrow');const rb=el('button','danger','Reset all progress');
+    rb.onclick=()=>{r2.innerHTML='';r2.append(el('span',null,'Erase XP, Diamonds, clues and stamps?'));const y=el('button','danger','Yes, reset');y.onclick=()=>{S=fresh();save();hud();closeBook();goCity();toast('Progress reset');};const n=el('button','pbtn','Cancel');n.onclick=renderBook;r2.append(y,n);};
+    r2.append(rb);body.appendChild(r2);
+    body.appendChild(el('div','empty','Trial build: 2 of 10 districts are playable. Progress is saved in this browser only.'));
+  }
+}
+function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function renderReview(body){
+  if(S.review.d!==today()){S.review={d:today(),n:0};save();}
+  const ws=Object.keys(S.words);
+  body.appendChild(el('div','empty','Review your saved words for +'+XP_REVIEW+' XP each, up to 5 a day. Today: '+S.review.n+'/5.'));
+  if(ws.length<2){body.appendChild(el('div','empty','Save at least 2 words first by tapping them in sentences.'));return;}
+  const w=ws[(Math.random()*ws.length)|0];
+  const pool=Object.keys(LEX).filter(k=>LEX[k][2]!=='name'&&k!==w);
+  const opts=[w];while(opts.length<4){const o=pool[(Math.random()*pool.length)|0];if(!opts.includes(o)&&LEX[o][1]!==LEX[w][1])opts.push(o);}
+  opts.sort(()=>Math.random()-.5);
+  const q=el('div','quiz');const big=el('div','big',w);const py=el('div',null,LEX[w][0]);py.style.color='#7a6a48';
+  q.append(el('div','src','What does this mean?'),big,py);
+  const grid=el('div','opts');
+  opts.forEach(o=>{const b=el('button','choice');b.append(el('span','lbl',LEX[o][1]));b.onclick=()=>{
+    if(o!==w){b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');return;}
+    if(S.review.n<5){S.review.n++;save();addXP(XP_REVIEW,'review');}else toast('Correct! (daily review XP used up)');
+    renderBook();};grid.appendChild(b);});
+  q.appendChild(grid);body.appendChild(q);
+}
+
+/* ---------------- Wire up ---------------- */
+$('btnPy').onclick=()=>{S.py=!S.py;save();hud();};
+$('btnBook').onclick=()=>openBook();
+$('btnMap').onclick=()=>goCity();
+$('btnSolve').onclick=()=>openSolve();
+// dev sanity: every token in the data is in the lexicon
+(function(){const miss=new Set();const chk=zh=>toks(zh).forEach(t=>{if(!PUNCT.test(t)&&!LEX[t])miss.add(t);});
+  for(const id in CASES){const c=CASES[id];Object.values(c.chunks).forEach(s=>chk(s.zh));c.clues.forEach(x=>{chk(x.s.zh);chk(x.check.q.zh);x.check.opts.forEach(chk);});
+    c.npcs.forEach(n=>{chk(n.intro.zh);chk(n.greet.zh);chk(n.bribe.zh);Object.values(n.topics).forEach(s=>chk(s.zh));if(n.ask){chk(n.ask.q.zh);chk(n.ask.after.zh);n.ask.opts.forEach(chk);}});
+    c.solve.forEach(q=>{chk(q.q.zh);q.opts.forEach(chk);});chk(c.epilogue.s.zh);
+    c.map.forEach((r,i)=>{if(r.length!==c.map[0].length)console.warn('map row width',id,i,r.length);});}
+  if(miss.size)console.warn('Missing lexicon:',[...miss]);})();
+hud();goCity();
+requestAnimationFrame(loop);
+})();
+</script>

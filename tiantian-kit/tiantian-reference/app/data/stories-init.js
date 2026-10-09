@@ -1,0 +1,1 @@
+window.STORIES = window.STORIES || [];
