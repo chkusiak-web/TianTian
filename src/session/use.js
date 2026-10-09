@@ -10,6 +10,10 @@ import { Paused } from '../ui/panel.js';
 import { todayKey } from '../core/clock.js';
 
 // vocabulary in a line: HSK and taught words (names and particles are never 'caught')
+// a hidden listening line: a play button and a waveform
+const WAVE = [3, 6, 9, 5, 11, 7, 4, 8, 12, 6, 3, 7, 10, 5, 3, 6, 9, 4];
+const listenHtml = () => `<div class="listen"><button class="play" aria-label="Play the line again">▶</button><div class="wave" aria-hidden="true">${WAVE.map((v) => `<i style="height:${v * 0.16}em"></i>`).join('')}</div></div>`;
+
 const idsIn = (text) => wordsIn(text).map((t) => lookup(t)).filter((e) => e && (!e.kind || e.kind === 'taught')).map((e) => String(e.id));
 
 export function runConversation({ use, store, cast, portraitFor, sessionId, backdrop }) {
@@ -35,7 +39,7 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, back
       const p = step.npc && portraitFor(step.npc);
       el.classList.toggle('narration', !step.npc);
       el.innerHTML = `${step.npc ? `<div class="portrait">${p ? `<img src="${esc(p.src)}" alt="" class="${p.pixel ? 'pixel' : ''}">` : ''}</div>` : ''}
-        <div class="dbody">${who ? `<div class="dname">${who.name ? `<span class="zh">${esc(who.name)}</span> ` : ''}<span class="den">${esc(who.en)}</span></div>` : ''}
+        <div class="dbody">${who ? `<div class="dname">${who.name ? `<span class="zh">${esc(who.name)}</span> ` : ''}<span class="den">${esc(who.en)}</span><span class="tagq" hidden></span></div>` : ''}
         <div class="dline"></div><div class="dask"></div><div class="dfoot"></div></div>`;
       return { line: el.querySelector('.dline'), ask: el.querySelector('.dask'), foot: el.querySelector('.dfoot') };
     };
@@ -61,8 +65,11 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, back
         // a prompt
         // a listening question doesn't show the line until you've answered (silent mode shows it: it becomes reading)
         const hidden = step.ask === 'listen' && step.zh && !silentToday();
-        if (step.zh) { say(box, step); if (hidden) { box.line.innerHTML = '<span class="note">🔊 Listen…</span>'; box.line.classList.add('hiddenline'); } box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button>`; box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc }); }
-        box.ask.innerHTML = `<div class="label">${esc(step.label)}</div><div class="q">${esc(step.q)}</div><div class="qarea"></div>`;
+        if (step.zh) { say(box, step); if (hidden) { box.line.innerHTML = listenHtml(); box.line.classList.add('hiddenline'); box.line.querySelector('.play').onclick = () => speak(step.zh, { who: step.npc }); } if (!hidden) { box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button>`; box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc }); } }
+        // one drill label (in the name row) and one question line
+        const tq = el.querySelector('.tagq');
+        if (tq) { tq.textContent = step.label.split(' · ')[0]; tq.hidden = false; }
+        box.ask.innerHTML = `${tq ? '' : `<div class="label">${esc(step.label)}</div>`}<div class="q">${esc(step.q)}</div><div class="qarea"></div>`;
         const area = box.ask.querySelector('.qarea');
         let r;
         if (step.ask) r = await askChoice(area, { options: step.options.map((o) => ({ html: esc(o), value: o, zh: true })), answer: step.answer, answerHtml: esc(step.answer), glossText: gloss(step.answer) });

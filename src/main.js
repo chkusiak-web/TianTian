@@ -1,3 +1,9 @@
+import '@fontsource/noto-sans-sc/400.css';
+import '@fontsource/noto-sans-sc/500.css';
+import '@fontsource/noto-sans-sc/700.css';
+import '@fontsource/nunito-sans/400.css';
+import '@fontsource/nunito-sans/600.css';
+import '@fontsource/nunito-sans/800.css';
 import { createAdapter } from './save/adapter.js';
 import { createStore } from './save/store.js';
 import { configureAudio } from './audio/index.js';
@@ -100,7 +106,7 @@ async function startBeat() {
 function openNotebook() {
   if (busy || isModalOpen()) return;
   const el = document.createElement('div');
-  el.className = 'sheet notebook-modal';
+  el.className = 'sheet notebook-modal book';
   el.innerHTML = `<div class="sheethead"><div class="sheettitle">本子 · Old Zhou's notebook</div><button class="icon-btn sclose" title="Close (Esc)">✕</button></div><div class="sheetbody">${renderPage(store.state, content.notebook)}</div>`;
   el.querySelector('.sclose').onclick = () => closeModal();
   openModal(el);
@@ -144,7 +150,7 @@ window.addEventListener('keydown', (e) => {
 window.__game = createGame('phaser', {
   district: places,
   getBeat: () => (P().stage === 'opening' ? -1 : P().beat),
-  onView: (s) => hud.setView(s),
+  onView: (s) => hud.setView(s, s.now),
   onReady: (s) => { scene = s; manifest = s.cache.json.get('manifest'); window.__scene = s; refresh(); maybeStartOpening(); }
 });
 refresh();

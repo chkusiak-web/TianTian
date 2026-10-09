@@ -33,9 +33,7 @@ export class DistrictScene extends Phaser.Scene {
     const b = d.board, still = layers({ movers: false });
     this.textures.addCanvas('board', crop(layers(), b.x, b.y, b.w, b.h, 1));
     for (const p of d.places) this.textures.addCanvas('scene.' + p.id, crop(still, p.view.x, p.view.y, W / ZOOM, H / ZOOM, ZOOM));
-    this.objs = []; this.timers = []; this.targets = []; this.labels = [];
-    this.marker = this.add.image(0, 0, 'obj.marker').setOrigin(0.5, 1).setDepth(10000);
-    this.glow = this.add.graphics().setDepth(9999);
+    this.objs = []; this.timers = []; this.targets = [];
     this.beat = this.hooks.getBeat();
     this.showBoard();
     this.hooks.onReady && this.hooks.onReady(this);
@@ -43,7 +41,7 @@ export class DistrictScene extends Phaser.Scene {
 
   clear() {
     this.objs.forEach((o) => o.destroy()); this.timers.forEach((t) => t.remove());
-    this.objs = []; this.timers = []; this.targets = []; this.labels = [];
+    this.objs = []; this.timers = []; this.targets = [];
   }
   onBoard(mx, my) { return { x: mx - this.d.board.x, y: my - this.d.board.y }; }
   onScene(p, mx, my) { return { x: (mx - p.view.x) * ZOOM, y: (my - p.view.y) * ZOOM }; }
@@ -53,10 +51,8 @@ export class DistrictScene extends Phaser.Scene {
     this.objs.push(this.add.image(0, 0, 'board').setOrigin(0));
     for (const p of this.d.places) {
       const a = this.onBoard(p.hot.x, p.hot.y);
-      this.targets.push({ kind: 'place', id: p.id, zh: p.zh, en: p.en, box: { x: a.x, y: a.y, w: p.hot.w, h: p.hot.h } });
-      if (p.zh) this.labels.push({ zh: p.zh, ...this.onBoard(p.label.x, p.label.y) });
+      this.targets.push({ kind: 'place', id: p.id, tag: p.tag, en: p.en, box: { x: a.x, y: a.y, w: p.hot.w, h: p.hot.h }, pin: this.onBoard(p.pin.x, p.pin.y) });
     }
-    this.setBeat(this.beat);
     this.hooks.onView(this);
   }
 
@@ -78,32 +74,12 @@ export class DistrictScene extends Phaser.Scene {
       if (n.taichi) this.timers.push(this.time.addEvent({ delay: 1300 + Math.random() * 400, loop: true, callback: () => { t.pose = ((t.pose || 0) + 1) % 4; s.setFrame([0, 4, 0, 8][t.pose] + (t.pose % 2)); } }));
       this.targets.push(t);
     }
-    for (const l of p.labels) this.labels.push({ zh: l.zh, sign: l.sign, ...this.onScene(p, l.x, l.y) });
-    this.setBeat(this.beat);
     this.hooks.onView(this);
   }
 
-  // the marker (and on the board, a glow) shows where today's beat is
-  setBeat(beat) {
-    this.beat = beat;
-    const bp = this.d.beatPlaces[beat];
-    this.tweens.killTweensOf(this.marker); this.tweens.killTweensOf(this.glow);
-    this.glow.clear().setAlpha(1);
-    let at = null;
-    if (bp && this.view === 'board') {
-      const p = this.d.places.find((q) => q.id === bp.place), a = this.onBoard(p.hot.x, p.hot.y);
-      this.glow.lineStyle(2, 0xF0C24B, 1).strokeRoundedRect(a.x, a.y, p.hot.w, p.hot.h, 6);
-      this.tweens.add({ targets: this.glow, alpha: 0.25, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-      at = { x: a.x + p.hot.w / 2, y: a.y + p.hot.h / 2 };
-    } else if (bp && this.view === 'place' && this.place.id === bp.place) {
-      const n = this.targets.find((t) => t.kind === 'npc' && t.id === bp.npc);
-      if (n) at = { x: n.x, y: n.y - (n.behind ? 32 : 28) };
-    }
-    this.marker.setVisible(!!at);
-    if (!at) return;
-    this.marker.setPosition(at.x, at.y);
-    this.tweens.add({ targets: this.marker, y: '-=3', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-  }
+  // today's beat: the HUD draws its pin gold (board) and its person's tag gold (place)
+  setBeat(beat) { this.beat = beat; if (this.view) this.hooks.onView(this); }
+  get now() { return this.d.beatPlaces[this.beat] || null; }
 
   // the person turns to face you when you talk to them
   faceYou(t) { if (t.sprite && !t.taichi) t.sprite.setFrame(0); }

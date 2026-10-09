@@ -37,7 +37,7 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   expect(s.stats.conversations).toBe(1);
 
   // open the spring on the board and click Grandma Wang to play the Hook
-  await page.click('.hot.k-place[data-id="spring"]');
+  await page.click('.spot.k-place[data-id="spring"]');
   await page.click('.hot.k-npc[data-id="wang"]');
   await expect(page.locator('.sheet .sheettitle')).toContainText('Hook');
   await autoplay(page, () => !!document.querySelector('.convo .dask .choices'));

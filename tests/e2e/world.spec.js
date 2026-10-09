@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 const view = (page) => page.evaluate(() => ({ view: window.__scene.view, place: window.__scene.place && window.__scene.place.id }));
-const marker = (page) => page.evaluate(() => ({ vis: window.__scene.marker.visible, x: window.__scene.marker.x }));
 
-test('scene map: board → place → talk, read a sign, back to the board, marker follows the beat', async ({ page }) => {
+test('scene map: board → place → talk, read a sign, back to the board, the gold pin follows the beat', async ({ page }) => {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto('/?dev');
   // skip the arrival: start at the district board at beat 1
@@ -11,19 +10,20 @@ test('scene map: board → place → talk, read a sign, back to the board, marke
   await page.reload();
   await page.waitForFunction(() => window.__scene && window.__scene.view);
 
-  // the board: five places, today's (the spring) marked, labels in Chinese with hover
+  // the board: five places as pins with name tags, today's (the spring) gold
   expect(await view(page)).toEqual({ view: 'board', place: null });
-  await expect(page.locator('.hot.k-place')).toHaveCount(5);
-  await expect(page.locator('.place')).toContainText('趵突泉');
+  await expect(page.locator('.spot.k-place')).toHaveCount(5);
+  await expect(page.locator('.hudplace')).toContainText('趵突泉');
   await expect(page.locator('#hint')).toContainText('Grandma Wang');
-  expect((await marker(page)).vis).toBe(true);
-  await page.locator('.hot.k-place[data-id="taichi"]').hover();
+  await expect(page.locator('.spot.now')).toHaveCount(1);
+  await expect(page.locator('.spot.now')).toHaveAttribute('data-id', 'spring');
+  await page.locator('.spot.k-place[data-id="taichi"]').hover();
   await expect(page.locator('.reach')).toContainText('tai chi');
 
-  // someone without a beat today just chats: Xiao Xie at the fish pool. No marker there.
-  await page.click('.hot.k-place[data-id="fish"]');
+  // someone without a beat today just chats: Xiao Xie at the fish pool. Nobody's tag is gold there.
+  await page.click('.spot.k-place[data-id="fish"]');
   expect(await view(page)).toEqual({ view: 'place', place: 'fish' });
-  expect((await marker(page)).vis).toBe(false);
+  await expect(page.locator('.spot.now')).toHaveCount(0);
   await page.locator('.hot.k-npc[data-id="xie"]').hover();
   await expect(page.locator('.reach')).toContainText('Talk');
   await page.click('.hot.k-npc[data-id="xie"]');
@@ -36,16 +36,14 @@ test('scene map: board → place → talk, read a sign, back to the board, marke
   await expect(page.locator('.dialogue')).toHaveCount(0);
   expect((await view(page)).place).toBe('fish');
 
-  // back to the board with the button, then the spring: the marker sits over Grandma Wang
+  // back to the board with the button, then the spring: Grandma Wang's tag is gold
   await page.click('#hudBack');
   expect((await view(page)).view).toBe('board');
-  await page.click('.hot.k-place[data-id="spring"]');
-  const m = await marker(page);
-  const wx = await page.evaluate(() => window.__scene.targets.find((t) => t.id === 'wang').x);
-  expect(m.vis).toBe(true); expect(m.x).toBe(wx);
+  await page.click('.spot.k-place[data-id="spring"]');
+  await expect(page.locator('.spot.now')).toHaveAttribute('data-id', 'wang');
 
   // read the Gate 4 sign by the spring
-  await page.click('.hot.k-sign[data-id="gate4"]');
+  await page.click('.spot.k-sign[data-id="gate4"]');
   await expect(page.locator('.signcard .signtext')).toContainText('四号门');
   await page.keyboard.press('Escape');
   await expect(page.locator('.signcard')).toHaveCount(0);
@@ -53,16 +51,15 @@ test('scene map: board → place → talk, read a sign, back to the board, marke
   await page.keyboard.press('Escape');
   expect((await view(page)).view).toBe('board');
 
-  // dev panel: jump to beat 2 → the tai chi square is marked, hint changes
+  // dev panel: jump to beat 2 → the tai chi square's pin is gold, hint changes
   await page.keyboard.press('`');
   await page.selectOption('#dvbeat', '1');
   await page.click('#dvjump');
   await page.keyboard.press('`');
   await expect(page.locator('#hint')).toContainText('tai chi');
-  await page.click('.hot.k-place[data-id="taichi"]');
-  const m2 = await marker(page);
-  const zx = await page.evaluate(() => window.__scene.targets.find((t) => t.id === 'zhang').x);
-  expect(m2.x).toBe(zx);
+  await expect(page.locator('.spot.now')).toHaveAttribute('data-id', 'taichi');
+  await page.click('.spot.k-place[data-id="taichi"]');
+  await expect(page.locator('.spot.now')).toHaveAttribute('data-id', 'zhang');
 
   // settings: slow speech sticks after reload
   await page.click('#hudSet');

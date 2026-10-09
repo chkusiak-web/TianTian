@@ -49,7 +49,7 @@ export async function playSession({ content, index, store, cast, portraitFor, on
       setStep('notebook');
     }
     if (getStep() === 'notebook') {
-      panel.setStep('notebook');
+      panel.setStep('notebook'); panel.el.classList.add('book');
       const after = clearLines(S, content.notebook.lines);
       const fresh = after.filter((i) => !before.includes(i));
       panel.body.innerHTML = `<p class="note">${fresh.length ? `${fresh.length} line${fresh.length > 1 ? 's' : ''} came into focus. Read ${fresh.length > 1 ? 'them' : 'it'}: hover for pinyin, click for English.` : 'More of the notebook is readable now. Words you\'ve caught are written clearly.'}</p>

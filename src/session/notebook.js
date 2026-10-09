@@ -37,7 +37,8 @@ export function renderPage(S, notebook, { fresh = [] } = {}) {
     return `<div class="nline ${clear ? 'clear' : ''} ${fresh.includes(i) ? 'fresh' : ''}" data-i="${i}" ${clear ? `title="${esc(l.en)}"` : ''}>${html}${clear ? ' <button class="icon-btn nsay" aria-label="Listen">🔊</button>' : ''}</div>`;
   }).join('');
   const n = notebook.lines.filter((l) => lineClear(S, l.zh)).length;
-  return `<div class="page"><div class="pagehead"><span>Old Zhou's notebook · page ${notebook.page}</span><span class="note">${n} / ${notebook.lines.length} lines readable</span></div>${lines}</div>`;
+  const pct = Math.round((n / notebook.lines.length) * 100);
+  return `<div class="page"><div class="pagehead"><span><b>老周的本子</b> · page ${notebook.page}</span><span class="pprog"><span><i style="width:${pct}%"></i></span>${n} / ${notebook.lines.length} lines readable</span></div>${lines}</div>`;
 }
 
 export function wirePage(root, notebook) {
