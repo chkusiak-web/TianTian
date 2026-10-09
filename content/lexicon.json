@@ -1,0 +1,247 @@
+{
+ "_about": "Words a Jinan player may see beyond HSK 1. Used by check-zh.js and hsk1-coverage.js. Taught words: at most 3 per district, introduced in that district's arc. Particles and names are always allowed. Fixed expressions are set phrases allowed as a whole (shown once with a ★).",
+ "districtOrder": [
+  "baotu",
+  "furong",
+  "daming",
+  "quancheng",
+  "qianfo",
+  "west",
+  "qushuiting",
+  "shanda",
+  "kuanhouli",
+  "hospital"
+ ],
+ "taught": {
+  "baotu": [
+   [
+    "泉",
+    "quán",
+    "spring (water)"
+   ],
+   [
+    "面子",
+    "miànzi",
+    "face; standing"
+   ],
+   [
+    "游客",
+    "yóukè",
+    "tourist"
+   ]
+  ],
+  "furong": [
+   [
+    "碗",
+    "wǎn",
+    "bowl (measure word)"
+   ],
+   [
+    "甜",
+    "tián",
+    "sweet"
+   ],
+   [
+    "油旋",
+    "yóuxuán",
+    "flaky scallion pastry"
+   ]
+  ],
+  "daming": [
+   [
+    "船",
+    "chuán",
+    "boat"
+   ],
+   [
+    "晴",
+    "qíng",
+    "sunny"
+   ],
+   [
+    "照片",
+    "zhàopiàn",
+    "photo"
+   ]
+  ],
+  "quancheng": [
+   [
+    "红",
+    "hóng",
+    "red"
+   ],
+   [
+    "钥匙",
+    "yàoshi",
+    "key"
+   ],
+   [
+    "便宜",
+    "piányi",
+    "cheap"
+   ]
+  ],
+  "qianfo": [
+   [
+    "往",
+    "wǎng",
+    "towards"
+   ],
+   [
+    "爬山",
+    "páshān",
+    "to climb a mountain"
+   ],
+   [
+    "对面",
+    "duìmiàn",
+    "opposite"
+   ]
+  ],
+  "west": [
+   [
+    "信",
+    "xìn",
+    "letter"
+   ],
+   [
+    "行李",
+    "xíngli",
+    "luggage"
+   ],
+   [
+    "欢迎",
+    "huānyíng",
+    "welcome"
+   ]
+  ],
+  "qushuiting": [
+   [
+    "井",
+    "jǐng",
+    "well"
+   ],
+   [
+    "邻居",
+    "línjū",
+    "neighbor"
+   ],
+   [
+    "院子",
+    "yuànzi",
+    "courtyard"
+   ]
+  ],
+  "shanda": [
+   [
+    "以前",
+    "yǐqián",
+    "before; in the past"
+   ],
+   [
+    "因为",
+    "yīnwèi",
+    "because"
+   ],
+   [
+    "年轻",
+    "niánqīng",
+    "young"
+   ]
+  ],
+  "kuanhouli": [
+   [
+    "熟人",
+    "shúrén",
+    "familiar face; acquaintance"
+   ],
+   [
+    "红包",
+    "hóngbāo",
+    "red packet"
+   ],
+   [
+    "大家",
+    "dàjiā",
+    "everyone"
+   ]
+  ],
+  "hospital": [
+   [
+    "舒服",
+    "shūfu",
+    "comfortable; well"
+   ],
+   [
+    "药",
+    "yào",
+    "medicine"
+   ],
+   [
+    "中秋",
+    "Zhōngqiū",
+    "Mid-Autumn Festival"
+   ]
+  ]
+ },
+ "particles": [
+  "啊",
+  "哦",
+  "嗯",
+  "哎",
+  "呀",
+  "哈哈",
+  "喂"
+ ],
+ "names": [
+  "济南",
+  "山东",
+  "趵突泉",
+  "芙蓉街",
+  "大明湖",
+  "泉城广场",
+  "千佛山",
+  "济南西站",
+  "曲水亭街",
+  "山东大学",
+  "宽厚里",
+  "省立医院",
+  "黑虎泉",
+  "五龙潭",
+  "七十二名泉",
+  "泉城",
+  "王奶奶",
+  "张老师",
+  "吕老师",
+  "小苏",
+  "小谢",
+  "孙师傅",
+  "林姐",
+  "老潘",
+  "陈女士",
+  "白大夫",
+  "王",
+  "张",
+  "吕",
+  "苏",
+  "谢",
+  "孙",
+  "林",
+  "潘",
+  "陈",
+  "白",
+  "老周",
+  "周",
+  "何泉",
+  "乐乐",
+  "马先生",
+  "马",
+  "成都",
+  "上海",
+  "北京",
+  "何"
+ ],
+ "fixed": [
+  "生日快乐"
+ ]
+}

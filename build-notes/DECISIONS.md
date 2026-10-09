@@ -9,3 +9,8 @@
 7. Status badge stays Tourist in this slice (Newcomer needs 100 caught, Baotu has about 53); the dev panel can raise the numbers.
 8. SRS time goes through an injectable clock so the dev panel can fast-forward days.
 9. Project sits at the repo root; the kit folders stay beside it, untouched.
+10. Palette: VISUAL-LANGUAGE says 24 colours but lists 20. Added skin light/dark, lotus pink and cloth blue (`src/world/palette.js`).
+11. Phaser runs with the Canvas renderer, not WebGL: 480×270 pixel art doesn't need WebGL, and WebGL left stale patches under the HTML overlays in testing.
+12. In-world sign text is HTML placed over the map (crisp, and hover/click works on it like all other Chinese) until a 12 px pixel CJK font is chosen.
+13. Taught words, names and particles get ids like `x:泉` so they share the save maps with HSK word ids.
+14. Dev panel key: the backtick (`). Ctrl/⌘+K opens the dictionary, as in 天天.
