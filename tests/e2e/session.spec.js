@@ -28,15 +28,21 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   expect((await state(page)).progress.openingStep).toBe('learn');
   await expect(page.locator('.sheet .steps li.now')).toHaveText(/Learn/);
 
-  // the arrival is two sessions: the taxi (then 「我是老周。」 is readable), then the gate (「七十三。」 too)
+  // the arrival is three sessions: the taxi (then 「我是老周。」 is readable), too fast (the repair lines, and
+  // 「你知道吗？」), then the gate (「七十三。」 too)
   await autoplay(page, () => !!document.querySelector('.nbclose'));
   await expect(page.locator('.page .nline.clear')).toHaveCount(1);
   await expect(page.locator('#arrival .taxi')).toBeVisible();
   await autoplay(page, () => !!document.querySelector('.storycard'));
-  await expect(page.locator('.storycard')).toContainText('old town');
+  await expect(page.locator('.storycard')).toContainText('faster');
   expect((await state(page)).progress.part).toBe(1);
   await autoplay(page, () => !!document.querySelector('.nbclose'));
   await expect(page.locator('.page .nline.clear')).toHaveCount(2);
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  await expect(page.locator('.storycard')).toContainText('old town');
+  expect((await state(page)).progress.part).toBe(2);
+  await autoplay(page, () => !!document.querySelector('.nbclose'));
+  await expect(page.locator('.page .nline.clear')).toHaveCount(3);
   await autoplay(page, () => window.__store.state.progress.stage === 'district' && !document.querySelector('.storycard'));
   let s = await state(page);
   expect(s.progress.beat).toBe(0);
@@ -44,7 +50,7 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   await expect(page.locator('.hudplace')).toContainText('趵突泉');
   const openingWords = await page.evaluate(() => window.__content.opening.words.length);
   expect(Object.keys(s.words).length).toBe(openingWords);           // every opening word caught, nothing else
-  expect(s.stats.conversations).toBe(2);
+  expect(s.stats.conversations).toBe(3);
   expect(s.progress.part).toBe(0);
 
   // open the spring on the board and click Grandma Wang to play the Hook
@@ -60,13 +66,13 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   s = await state(page);
   const hookWords = await page.evaluate(() => window.__content.beats[0].words.length);
   expect(Object.keys(s.words).length).toBe(openingWords + hookWords);
-  expect(s.stats.conversations).toBe(4);
-  expect(s.stats.cleanConversations).toBe(4);
+  expect(s.stats.conversations).toBe(5);
+  expect(s.stats.cleanConversations).toBe(5);
   await expect(page.locator('#hint')).toContainText('tai chi');
 
-  // the notebook opens from the bottom bar with three lines readable
+  // the notebook opens from the bottom bar with four lines readable
   await page.click('#hudBook');
-  await expect(page.locator('.notebook-modal .nline.clear')).toHaveCount(3);
+  await expect(page.locator('.notebook-modal .nline.clear')).toHaveCount(4);
   await page.keyboard.press('Escape');
 
   // a day later, Refresh has due words before the next beat
@@ -158,8 +164,9 @@ test('Investigate 3: mishear 四 as 十, walk to Gate 10, then follow the signs 
   await page.click('.hot.k-npc[data-id="xie"]');
   await autoplay(page, () => (document.querySelector('.convo .tagq') || {}).textContent === 'Tones');
   await page.click('.convo .choice:not([data-dev-ok])');               // hear 十 instead of 四
-  await page.click('.cgo');
-  await expect(page.locator('.convo')).toContainText('Gate 10');
+  await expect(page.locator('.convo .tagq')).toHaveText('Repair');    // no ✗: you ask the kid to say it again (§6.11)
+  await expect(page.locator('.convo .confirm.no')).toHaveCount(0);
+  await autoplay(page, () => document.querySelector('.convo').textContent.includes('Gate 10'));
   await page.keyboard.press('Space');
   await expect(page.locator('.convo .dline')).toContainText('这儿没有十号门');
   expect(await page.evaluate(() => window.__store.state.progress.clueMistake)).toBe(true);
@@ -196,9 +203,11 @@ test('Challenge: Lele\'s riddle duel — 4 hearts after the clue mistake, lose, 
   await expect(page.locator('.convo .hearts .h.on')).toHaveCount(4);
 
   // miss four choice prompts in a row: out of face
+  // (each miss: the repair line replaces the ✗ box, then the next riddle)
   for (let k = 0; k < 4; k++) {
     await page.locator('.convo .choice:not([data-dev-ok])').first().click();
-    await page.click('.cgo');
+    await expect(page.locator('.convo .tagq')).toHaveText('Repair');
+    await autoplay(page, () => !document.querySelector('.convo .build') && (!!document.querySelector('.convo .choice:not([disabled])') || document.querySelector('.convo').textContent.includes('先走了')));
   }
   await expect(page.locator('.convo')).toContainText('对不起，我先走了。');
   await page.click('.dnext');
@@ -232,5 +241,40 @@ test('Payoff: return the thermos, read notebook page 1, and Baotu is done', asyn
   await expect(page.locator('.storycard')).toContainText('notebook');
   await autoplay(page, () => window.__store.state.progress.beat === 6);
   await expect(page.locator('#hint')).toContainText('beats are done');
+  expect(errors).toEqual([]);
+});
+
+test('Conversation rules (§6.11): a nonsense reply gets 「什么？」, a near miss is recast, no ✗ in either', async ({ page }) => {
+  test.setTimeout(240000);
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?dev');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
+  await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
+  await page.click('.storycard button');
+  await expect(page.locator('.introhz')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await page.keyboard.press('`');
+  await page.selectOption('#dvbeat', '2'); await page.click('#dvjump');
+  await page.keyboard.press('`');
+
+  await page.click('.spot.k-place[data-id="gate"]');
+  await page.click('.hot.k-npc[data-id="chen"]');
+  await autoplay(page, () => !!document.querySelector('.convo .replies'));
+  await page.locator('.convo .replies .choice', { hasText: '我是杯子' }).click();     // nonsense
+  await expect(page.locator('.convo .dline')).toContainText('你是杯子？什么？');
+  await expect(page.locator('.convo .confirm.no')).toHaveCount(0);
+  await page.click('.dnext');
+  await expect(page.locator('.convo .replies .choice')).toHaveCount(2);              // choose again, without the nonsense
+
+  // buy a ticket, but leave out 一: Ms. Chen says it back correctly and carries on
+  await autoplay(page, () => !!document.querySelector('.convo .build') && document.querySelector('.build').dataset.devAnswer === '我|要|一|个|门票');
+  for (const t of ['我', '要', '个', '门票']) await page.locator('.convo .tiles .tile:not([disabled])', { hasText: new RegExp(`^${t}$`) }).first().click();
+  await page.click('.bcheck');
+  await expect(page.locator('.convo .dline')).toContainText('一个门票？好！');
+  await expect(page.locator('.convo .dline .recast')).toContainText('我要一个门票');
+  await expect(page.locator('.convo .confirm.no')).toHaveCount(0);
+  await autoplay(page, () => window.__store.state.progress.part === 1);
   expect(errors).toEqual([]);
 });

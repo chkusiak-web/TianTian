@@ -19,10 +19,10 @@ describe('notebook page 1 (§4.4)', () => {
     expect(tokenState(S, '这个')).toBe('smudge');
     catchAll(S, ['个']); expect(tokenState(S, '这个')).not.toBe('smudge');
   });
-  it('after the opening, 「我是老周。」 and 「七十三。」 are readable', () => {
+  it('after the opening, 「我是老周。」, 「你知道吗？」 and 「七十三。」 are readable', () => {
     const S = defaultSave(); catchAll(S, content.opening.words);
     const lines = content.notebook.lines.map((l) => l.zh);
-    expect(clearLines(S, content.notebook.lines).map((i) => lines[i])).toEqual(['我是老周。', '七十三。']);
+    expect(clearLines(S, content.notebook.lines).map((i) => lines[i])).toEqual(['我是老周。', '你知道吗？', '七十三。']);
   });
   it('after the Hook, 「孩子：你好！」 clears too; after every beat the whole page is readable', () => {
     const S = defaultSave(); catchAll(S, content.opening.words); catchAll(S, content.beats[0].words);

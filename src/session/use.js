@@ -58,7 +58,7 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
     const say = (box, step, slow) => {
       box.line.classList.add('zh'); box.line.classList.toggle('signline', !!step.sign); box.line.textContent = step.zh;
       const ids = idsIn(step.zh); markSeen(S, ids); ids.forEach((id) => addCtx(S, id, step.zh, sessionId));
-      speak(step.zh, { who: step.npc, ...(slow ? { slow: true } : {}) });
+      speak(step.zh, { who: step.npc, ...(slow || step.slow ? { slow: true } : {}) });
     };
     const nextBtn = (box, label = 'Next') => { box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button><button class="btn primary dnext">${label} <kbd>Space</kbd></button>`; box.foot.querySelector('.dnext').onclick = () => { if (advance) { const a = advance; advance = null; a(); } }; };
 
@@ -67,8 +67,9 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
       const box = frame({ ...step, face: face || step.face });
       box.line.classList.add('zh'); box.line.classList.remove('signline'); box.line.textContent = zh;
       if (under) box.line.insertAdjacentHTML('beforeend', `<div class="recast">${under}</div>`);
-      speak(zh, { who: step.npc, slow }); nextBtn(box);
-      box.foot.querySelector('.dsay').onclick = () => speak(zh, { who: step.npc, slow });
+      const o = { who: step.npc, ...(slow ? { slow: true } : {}) };
+      speak(zh, o); nextBtn(box);
+      box.foot.querySelector('.dsay').onclick = () => speak(zh, o);
       await wait();
     };
     const tokens = (zh) => wordsIn(zh);

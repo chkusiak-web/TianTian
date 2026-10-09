@@ -1,6 +1,6 @@
 // Assigns Baotu's words to its six beats (CONCEPT §2.2, §5.1) and prints the list for review.
 //   node tools/assign-words.js            print the plan
-//   node tools/assign-words.js --write    also write content/baotu-words.json (used by the scenes and the validator)
+//   node tools/assign-words.js --write    also write content/baotu-words.json (superseded: the content is the source now, see tools/write-baotu-words.js)
 //
 // Method:
 //  1. Collect every word in the §5.1 key lines, the opening and notebook page 1 (segmented against HSK 1 + lexicon).

@@ -24,7 +24,7 @@ describe('content validator', () => {
 import { checkBeatRules } from '../../tools/lib/beatrules.js';
 describe('§6.10 beat rules', () => {
   const base = () => ({ district: 'baotu', opening: { id: 'o', words: ['你好', '我'], use: { steps: [
-    { npc: 'x', zh: '你好！我，老潘。' }, { build: true, answer: '你好！', extra: [] }, { ask: 'listen', zh: '我', options: ['我', '你好'], answer: '我' }] } }, beats: [] });
+    { npc: 'x', zh: '你好！老潘。' }, { build: true, answer: '你好！', extra: [] }, { ask: 'listen', zh: '我', options: ['我', '你好'], answer: '我' }] } }, beats: [] });
   const quiet = () => {};
   it('passes a scene where every new word is an answer and appears twice', () => {
     expect(checkBeatRules(base(), 't', quiet)).toEqual([]);
@@ -41,9 +41,23 @@ describe('§6.10 beat rules', () => {
     const d = base(); d.opening.words.push('一', '二', '三', '四', '五', '六', '七');
     expect(checkBeatRules(d, 't', quiet).join()).toMatch(/teaches 9 new words/);
   });
+  it('§6.11: flags a line asked about right after it is shown, and a line checked twice', () => {
+    const d = base(); d.opening.use.steps.splice(2, 0, { npc: 'x', zh: '我。' });
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/「我」 is asked about right after it's shown/);
+    const e = base(); e.opening.use.steps.push({ ask: 'listen', zh: '我！', options: ['我', '你好'], answer: '我' });
+    expect(checkBeatRules(e, 't', quiet).join()).toMatch(/is checked twice/);
+  });
+  it('§6.11: flags a speaking prompt that gives the sentence, and a reply step with no nonsense option', () => {
+    const d = base(); d.opening.use.steps[1].q = 'Say: hello.';
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/gives the sentence/);
+    const e = base(); e.opening.use.steps.push({ reply: true, npc: 'x', q: 'Greet him.', options: [{ zh: '你好！' }, { zh: '我！' }] });
+    expect(checkBeatRules(e, 't', quiet).join()).toMatch(/no wrong or nonsense option/);
+    e.opening.use.steps[3].options[1].nonsense = true;
+    expect(checkBeatRules(e, 't', quiet)).toEqual([]);
+  });
   it('checks each part of a split unit, and that the parts cover its words', () => {
     const d = base(); const o = d.opening;
-    d.opening = { id: 'o', words: ['你好', '我'], parts: [{ id: 'p1', words: ['你好'], use: { steps: o.use.steps.slice(0, 2) } }, { id: 'p2', words: ['我'], use: { steps: o.use.steps.slice(2) } }] };
+    d.opening = { id: 'o', words: ['你好', '我'], parts: [{ id: 'p1', words: ['你好'], use: { steps: [{ npc: 'x', zh: '我，老潘。' }, ...o.use.steps.slice(0, 2)] } }, { id: 'p2', words: ['我'], use: { steps: o.use.steps.slice(2) } }] };
     expect(checkBeatRules(d, 't', quiet).join()).toMatch(/p1 uses 我|p2 new word 我 appears/);
     d.opening.parts[1].words = [];
     expect(checkBeatRules(d, 't', quiet).join()).toMatch(/parts don't match its words \(missing 我/);
