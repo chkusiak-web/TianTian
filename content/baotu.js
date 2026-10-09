@@ -185,7 +185,59 @@ export default {
         }
       ]
     },
-    { id: 'inv2', title: 'Investigate 2 · ticket window', npc: 'chen', words: words.inv2, use: null },
+    {
+      id: 'inv2',
+      title: 'Investigate 2 · ticket window',
+      npc: 'chen',
+      en: 'Ms. Chen\'s ticket window at the south gate: buy a ticket, then check her lost-and-found ledger.',
+      words: words.inv2,
+      parts: [
+        {
+          id: 'inv2a',
+          title: 'Investigate 2 · a ticket',
+          en: 'Buy a ticket at the south gate.',
+          words: ['游客', '门票', '四', '块', '号', '门'],
+          use: {
+            place: 'The ticket window at the south gate',
+            steps: [
+              { note: 'The ticket window at the south gate. Ms. Chen looks up from a fat ledger.' },
+              { npc: 'chen', zh: '你好！你是游客吗？', en: 'Hello! Are you a tourist?' },
+              { ask: 'listen', npc: 'chen', zh: '你是游客吗？', en: 'Are you a tourist?', label: 'Listening · what does she ask?', q: 'What does Ms. Chen ask you?', options: ['你是游客吗？', '你是老周吗？', '你是孩子吗？'], answer: '你是游客吗？' },
+              { build: true, npc: 'chen', label: 'Speaking · answer her', q: 'Say: yes, I\'m a tourist.', answer: '是，我是游客。', accept: ['我是游客。'], extra: ['不', '吗'] },
+              { npc: 'chen', zh: '这是一号门。门票四十块。', en: 'This is Gate 1. A ticket is forty yuan.' },
+              { ask: 'listen', npc: 'chen', zh: '门票四十块。', en: 'A ticket is forty yuan.', label: 'Listening · how much?', q: 'How much is a ticket?', options: ['四十块', '十四块', '四块'], answer: '四十块' },
+              { build: true, npc: 'chen', label: 'Speaking · buy a ticket', q: 'Say: I want a ticket.', answer: '我要门票。', extra: ['四', '你'] },
+              { npc: 'chen', zh: '谢谢！这是你的门票。', en: 'Thank you! Here\'s your ticket.' },
+              { ask: 'read', npc: 'chen', zh: '门票 · 四十块 · 一号门', en: 'Ticket · 40 yuan · Gate 1', label: 'Reading · your ticket', q: 'Which gate does your ticket say?', options: ['一号门', '四号门', '七号门'], answer: '一号门' },
+              { build: true, npc: 'chen', label: 'Speaking · ask about the cup', q: 'Ask her: did you see a white cup?', answer: '你看见一个白杯子吗？', accept: ['你看见白杯子吗？'], extra: ['我', '门票'] },
+              { npc: 'chen', zh: '一个白杯子？这是我的本子。', en: 'A white cup? This is my notebook.' },
+              { note: 'She turns the ledger around: everything lost and found at Baotu, by time and gate.' }
+            ]
+          }
+        },
+        {
+          id: 'inv2b',
+          title: 'Investigate 2 · the ledger',
+          intro: 'Ms. Chen\'s ledger: three lines from today, each with a thing, a time and a gate.',
+          en: 'Find the white cup in Ms. Chen\'s lost-and-found ledger.',
+          words: ['书', '下午', '手机', '上午', '九', '点'],
+          use: {
+            place: 'The ticket window at the south gate',
+            steps: [
+              { npc: 'chen', zh: '这是我的本子。白杯子，白杯子……', en: 'This is my notebook. White cup, white cup…' },
+              { ask: 'read', npc: 'chen', zh: '书 · 下午三点 · 七号门', en: 'Book · 3 p.m. · Gate 7', label: 'Reading · line 1', q: 'What was found on this line?', options: ['书', '手机', '杯子'], answer: '书' },
+              { ask: 'read', npc: 'chen', zh: '手机 · 上午十点 · 三号门', en: 'Phone · 10 a.m. · Gate 3', label: 'Reading · line 2', q: 'And on this one?', options: ['手机', '书', '门票'], answer: '手机' },
+              { ask: 'read', npc: 'chen', zh: '白杯子 · 上午九点 · 四号门', en: 'White cup · 9 a.m. · Gate 4', label: 'Reading · line 3', q: 'When was the white cup seen?', options: ['上午九点', '下午九点', '上午十点'], answer: '上午九点' },
+              { build: true, npc: 'chen', label: 'Speaking · read it out', q: 'Read the cup\'s line to her: white cup, nine in the morning.', answer: '白杯子，上午九点。', extra: ['下午', '书'] },
+              { build: true, npc: 'chen', label: 'Speaking · make sure', q: 'Check: not in the afternoon?', answer: '不是下午？', extra: ['上午', '吗'] },
+              { npc: 'chen', zh: '不是下午。上午九点，四号门。一个孩子拿了。', en: 'Not the afternoon. Nine in the morning, Gate 4. A child took it.' },
+              { ask: 'listen', npc: 'chen', zh: '上午九点，四号门。', en: 'Nine in the morning, Gate 4.', label: 'Listening · which gate?', q: 'Which gate was it?', options: ['四号门', '三号门', '七号门'], answer: '四号门' },
+              { note: 'Gate 4, nine in the morning, a child. Xiao Xie by the fish pool sees every child who runs past.' }
+            ]
+          }
+        }
+      ]
+    },
     { id: 'inv3', title: 'Investigate 3 · fish pool and Gate 4', npc: 'xie', words: words.inv3, use: null },
     { id: 'challenge', title: 'Challenge · Lele\'s riddle duel', npc: 'lele', words: words.challenge, use: null },
     { id: 'payoff', title: 'Resolution + notebook page 1', npc: 'wang', words: words.payoff, use: null }

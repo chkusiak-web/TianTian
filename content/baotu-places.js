@@ -37,7 +37,7 @@ export default {
     {
       id: 'gate', en: 'South gate', tag: '南门',
       hot: { x: 340, y: 452, w: 82, h: 44 }, pin: { x: 362, y: 470 },
-      view: { x: 300, y: 412 },
+      view: { x: 318, y: 432 },
       people: [
         { id: 'chen', name: '陈女士', en: 'Ms. Chen', x: 398, y: 482, face: 'down', behind: 'window', lines: [{ zh: '你好！你是游客吗？', en: 'Hello! Are you a tourist?' }] }
       ],

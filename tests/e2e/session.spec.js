@@ -110,3 +110,30 @@ test('Investigate 1: the tai chi beat plays as two sessions and points to the ti
   await expect(page.locator('#hint')).toContainText('ticket window');
   expect(errors).toEqual([]);
 });
+
+test('Investigate 2: the ticket window and the ledger, then on to the fish pool', async ({ page }) => {
+  test.setTimeout(240000);
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?dev');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
+  await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
+  await page.click('.storycard button');
+  await expect(page.locator('.introhz')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await page.keyboard.press('`');
+  await page.selectOption('#dvbeat', '2'); await page.click('#dvjump');
+  await page.keyboard.press('`');
+  await expect(page.locator('#hint')).toContainText('ticket window');
+
+  await page.click('.spot.k-place[data-id="gate"]');
+  await page.click('.hot.k-npc[data-id="chen"]');
+  await expect(page.locator('.sheet .sheettitle')).toContainText('a ticket');
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  await expect(page.locator('.storycard')).toContainText('ledger');
+  await autoplay(page, () => window.__store.state.progress.beat === 3);
+  await expect(page.locator('#hint')).toContainText('fish pool');
+  expect(await page.evaluate(() => window.__store.state.stats.cleanConversations)).toBe(2);
+  expect(errors).toEqual([]);
+});
