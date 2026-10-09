@@ -34,7 +34,7 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
 
     const frame = (step) => {
       const who = step.npc && cast[step.npc];
-      const p = step.npc && portraitFor(step.npc);
+      const p = step.npc && portraitFor(step.npc, step.face);
       el.classList.toggle('narration', !step.npc);
       el.innerHTML = `${step.npc ? `<div class="portrait">${p ? `<img src="${esc(p.src)}" alt="" class="${p.pixel ? 'pixel' : ''}">` : ''}</div>` : ''}
         <div class="dbody">${who ? `<div class="dname">${who.name ? `<span class="zh">${esc(who.name)}</span> ` : ''}<span class="den">${esc(who.en)}</span><span class="tagq" hidden></span></div>` : ''}

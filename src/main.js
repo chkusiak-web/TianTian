@@ -14,6 +14,7 @@ import { openDialogue, openSignCard } from './ui/dialogue.js';
 import { openSettings } from './ui/settings.js';
 import { createHud } from './ui/hud.js';
 import { drawPortrait } from './world/draw.js';
+import { portraitURL } from './world/portraits.js';
 import { todayKey } from './core/clock.js';
 import places from '../content/baotu-places.js';
 import content from '../content/baotu.js';
@@ -142,7 +143,10 @@ if (new URLSearchParams(location.search).has('dev')) initDevPanel({ store, toast
 window.__content = content;
 
 let manifest = null;
-function portraitFor(id) {
+// the cast's code-drawn portraits first (src/world/portraits.js); a step can ask for a face: neutral, happy, worried, confused
+function portraitFor(id, face) {
+  const coded = portraitURL(id, face);
+  if (coded) return { src: coded, pixel: true };
   const p = manifest && manifest.people[id];
   if (!p) return null;
   if (p.portrait) return { src: import.meta.env.BASE_URL + 'assets/' + p.portrait };
