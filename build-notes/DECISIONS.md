@@ -18,3 +18,8 @@
 16. Saving is automatic and invisible. Export / import / reset live in Settings, not on the main screen.
 17. Hover tip stays up while the mouse crosses punctuation or gaps inside one line; a locked word says "Pinyin unlocks after you answer" instead of showing nothing.
 18. Question lock, user choice B (changes CONCEPT §6.1 / 天天's HZ_LOCK): the question text stays hoverable; only the answer tiles are locked until you answer, right or wrong. Applied to drills, challenges and the gate quiz alike.
+19. Park layout (one screen): south gate entrance with Ms. Chen's ticket booth, the big spring in the middle with Grandma Wang at the railing, tai chi square east, lotus fish pool south-west with Xiao Xie and a kid, Gate 4 in the north-west corner with Lele, and a 「四号门 → 左边」 signpost at the north junction. Map, signs and cast live in `content/baotu-map.js`.
+20. Controls: WASD/arrows walk, Space (or Enter/E) talks or reads, Esc closes. Walking freezes while any overlay is open.
+21. The corner display is a slim bar on the bottom wall (place + next step, 词典, Settings) so it never covers the map's people or signs.
+22. Portraits: Grandma Wang and Teacher Zhang use 天天's illustrated faces as placeholders (allowed by the brief); everyone else gets a pixel bust cut from their sprite.
+23. For now everyone is visible from the start. Showing Lele only once the story reaches Gate 4 comes with the beats (checkpoint 4).

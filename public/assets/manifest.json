@@ -1,20 +1,173 @@
 {
-  "_about": "Every game asset is listed here. 'src': null means 'use the code-drawn placeholder'. To swap in real art, put a PNG next to this file and set src to its file name (tiles 16x16, objects at their listed size, people as a 64x96 sheet: 4 columns of walk frames, rows = down, left, right, up). No code changes needed.",
+  "_about": "Every game asset is listed here. 'src': null means 'use the code-drawn placeholder'. To swap in real art, put a PNG next to this file and set src to its file name (tiles 16x16, objects at their listed size, people as a 64x96 sheet: 4 columns of walk frames, rows = down, left, right, up). No code changes needed. 'portrait' (optional) is a 64x64 PNG for the dialogue box; without it the portrait is cut from the sprite.",
   "tiles": {
-    "grass_a": { "src": null }, "grass_b": { "src": null }, "path": { "src": null }, "pave": { "src": null },
-    "water_a": { "src": null }, "water_b": { "src": null }, "wall": { "src": null }, "roof": { "src": null },
-    "tree": { "src": null }, "willow": { "src": null }, "stone_step": { "src": null }
+    "grass_a": {
+      "src": null
+    },
+    "grass_b": {
+      "src": null
+    },
+    "path": {
+      "src": null
+    },
+    "pave": {
+      "src": null
+    },
+    "water_a": {
+      "src": null
+    },
+    "water_b": {
+      "src": null
+    },
+    "wall": {
+      "src": null
+    },
+    "roof": {
+      "src": null
+    },
+    "tree": {
+      "src": null
+    },
+    "willow": {
+      "src": null
+    },
+    "stone_step": {
+      "src": null
+    },
+    "lotus": {
+      "src": null
+    },
+    "flowers": {
+      "src": null
+    }
   },
   "objects": {
-    "sign": { "src": null }, "railing": { "src": null }, "window": { "src": null }, "lantern": { "src": null }, "bench": { "src": null }
+    "sign": {
+      "src": null
+    },
+    "railing": {
+      "src": null
+    },
+    "window": {
+      "src": null
+    },
+    "lantern": {
+      "src": null
+    },
+    "bench": {
+      "src": null
+    },
+    "stele": {
+      "src": null
+    },
+    "signpost": {
+      "src": null
+    },
+    "spring_a": {
+      "src": null
+    },
+    "spring_b": {
+      "src": null
+    },
+    "marker": {
+      "src": null
+    }
   },
   "people": {
-    "player": { "src": null, "look": { "hair": "#2A2622", "top": "#3E5C8A", "bottom": "#5C6A7E" } },
-    "wang": { "src": null, "look": { "hair": "#C9C3B6", "top": "#C2573F", "bottom": "#7D5A3C", "trait": "thermos", "long": false } },
-    "zhang": { "src": null, "look": { "hair": "#8E8A82", "top": "#F3EFE6", "bottom": "#2A2622", "trait": "beard" } },
-    "chen": { "src": null, "look": { "hair": "#2A2622", "top": "#5C6A7E", "bottom": "#2A2622", "trait": "bun" } },
-    "xie": { "src": null, "look": { "hair": "#7D5A3C", "top": "#E58FA8", "bottom": "#3E5C8A", "long": true } },
-    "lele": { "src": null, "look": { "hair": "#2A2622", "top": "#E8B93A", "bottom": "#3A95BE", "trait": "cap", "cap": "#3A95BE" } },
-    "pan": { "src": null, "look": { "hair": "#2A2622", "top": "#8E8A82", "bottom": "#2A2622", "trait": "cap", "cap": "#2A2622" } }
-  }
+    "player": {
+      "src": null,
+      "look": {
+        "hair": "#2A2622",
+        "top": "#3E5C8A",
+        "bottom": "#5C6A7E"
+      }
+    },
+    "wang": {
+      "src": null,
+      "look": {
+        "hair": "#C9C3B6",
+        "top": "#C2573F",
+        "bottom": "#7D5A3C",
+        "trait": "thermos",
+        "long": false
+      },
+      "portrait": "portraits/wang.png"
+    },
+    "zhang": {
+      "src": null,
+      "look": {
+        "hair": "#8E8A82",
+        "top": "#F3EFE6",
+        "bottom": "#2A2622",
+        "trait": "beard"
+      },
+      "portrait": "portraits/zhang.png"
+    },
+    "chen": {
+      "src": null,
+      "look": {
+        "hair": "#2A2622",
+        "top": "#5C6A7E",
+        "bottom": "#2A2622",
+        "trait": "bun"
+      }
+    },
+    "xie": {
+      "src": null,
+      "look": {
+        "hair": "#7D5A3C",
+        "top": "#E58FA8",
+        "bottom": "#3E5C8A",
+        "long": true
+      }
+    },
+    "lele": {
+      "src": null,
+      "look": {
+        "hair": "#2A2622",
+        "top": "#E8B93A",
+        "bottom": "#3A95BE",
+        "trait": "cap",
+        "cap": "#3A95BE",
+        "kid": true
+      }
+    },
+    "pan": {
+      "src": null,
+      "look": {
+        "hair": "#2A2622",
+        "top": "#8E8A82",
+        "bottom": "#2A2622",
+        "trait": "cap",
+        "cap": "#2A2622"
+      }
+    },
+    "folk1": {
+      "src": null,
+      "look": {
+        "hair": "#F3EFE6",
+        "top": "#F3EFE6",
+        "bottom": "#5C6A7E"
+      }
+    },
+    "folk2": {
+      "src": null,
+      "look": {
+        "hair": "#2A2622",
+        "top": "#C2573F",
+        "bottom": "#2A2622",
+        "trait": "glasses"
+      }
+    },
+    "kid": {
+      "src": null,
+      "look": {
+        "hair": "#2A2622",
+        "top": "#A8DC5A",
+        "bottom": "#7D5A3C",
+        "kid": true
+      }
+    }
+  },
+  "_portraits_note": "portraits/wang.png and portraits/zhang.png are copied from 天天 (app/img/people/*-face.png) as placeholders, as allowed by the build brief."
 }

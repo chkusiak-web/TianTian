@@ -35,21 +35,47 @@ kbd { font: inherit; font-size: .8em; border: 1px solid var(--stone3); border-bo
 .icon-btn { background: none; border: 0; font-size: 1.2em; }
 .row { display: flex; gap: .6em; align-items: center; flex-wrap: wrap; }
 
-/* checkpoint-1 home card */
-.home { position: absolute; left: 3%; top: 4%; width: 38%; max-height: 92%; overflow: auto; }
-.home h1 { margin: 0 0 .2em; font-size: 2.2em; letter-spacing: .02em; }
-.home p { margin: .5em 0; line-height: 1.5; }
-.home .sample { font-size: var(--zh); line-height: 1.7; margin: .3em 0; }
-.home h3 { margin: 1em 0 .3em; font-size: 1em; text-transform: uppercase; letter-spacing: .08em; color: var(--earth3); }
-.choices { display: flex; gap: .6em; margin: .5em 0; }
-.choices .btn { font-size: var(--zh); }
-.verdict { min-height: 1.4em; font-weight: 600; }
-.verdict.ok { color: var(--green); } .verdict.no { color: var(--red); }
+/* corner display */
+.hud { position: absolute; inset: 0; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.place { position: absolute; left: .6%; bottom: .7%; height: 4.6%; display: flex; align-items: center; gap: .5em; padding: 0 .8em; background: rgba(42, 38, 34, .88); color: var(--stone1); border-radius: 3px; font-size: .95em; }
+.place .zh { font-weight: 700; } .place .pen { color: var(--stone2); }
+.hint { margin-left: .6em; padding-left: .8em; border-left: 1px solid var(--stone3); color: var(--gold1); }
+.hint:empty { display: none; }
+.hudbtns { position: absolute; right: .6%; bottom: .7%; height: 4.6%; display: flex; gap: .4em; }
+.hudbtns .btn { padding: 0 .7em; }
+.hudbtns .btn { font-size: .95em; }
+
+/* "Space · Talk" over whoever is in reach */
+.reach { position: absolute; transform: translate(-50%, -100%); background: var(--line); color: var(--stone1); padding: .15em .5em; border-radius: 3px; font-size: calc(var(--ui) * .85); white-space: nowrap; pointer-events: none; }
+.reach kbd { background: var(--stone1); color: var(--line); }
+
+/* dialogue box: bottom third, portrait on the left */
+.dialogue { position: absolute; left: 3%; right: 3%; bottom: 3%; height: 30%; display: flex; gap: 1.2em; align-items: stretch; }
+.dialogue .portrait { flex: 0 0 auto; aspect-ratio: 1; height: 100%; background: var(--sky); border: 2px solid var(--earth3); overflow: hidden; }
+.dialogue .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dialogue .portrait img.pixel { image-rendering: pixelated; }
+.dbody { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.dname { font-weight: 700; margin-bottom: .3em; } .dname .zh { font-size: var(--zh); } .den { color: var(--earth3); font-weight: 400; }
+.dline { flex: 1; font-size: calc(var(--zh) * 1.25); line-height: 1.5; }
+.dfoot { display: flex; gap: .8em; align-items: center; justify-content: flex-end; }
+.dfoot .note { margin-right: auto; }
+
+/* sign card */
+.signcard { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); min-width: 32%; text-align: center; }
+.signtext { font-size: calc(var(--zh) * 2.2); font-weight: 700; margin: .3em 0 .5em; letter-spacing: .05em; }
+.signcard .row { justify-content: center; }
+
+/* settings */
+.settings { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 46%; }
+.settings h2 { margin: 0 0 .5em; } .settings h3 { margin: 1.1em 0 .2em; color: var(--earth3); font-size: 1em; text-transform: uppercase; letter-spacing: .08em; }
+.settings select { font: inherit; }
 .note { color: #5a544c; font-size: .9em; }
-.toggle { display: flex; gap: .5em; align-items: center; margin: .3em 0; }
+.toggle { display: flex; gap: .5em; align-items: center; margin: .45em 0; }
 
 /* in-world labels (signs etc.): HTML on top of the map so they stay crisp and hoverable */
-.wlabel { position: absolute; transform: translate(-50%, -50%); font-size: calc(var(--bw) / 60); font-weight: 700; background: var(--earth1); border: 2px solid var(--earth3); padding: 0 .3em; color: var(--line); white-space: nowrap; pointer-events: auto; }
+.wlabel { position: absolute; transform: translate(-50%, -50%); font-size: max(13px, calc(var(--bw) / 72)); font-weight: 700; background: rgba(243, 239, 230, .92); border: 2px solid var(--stone3); padding: 0 .3em; color: var(--line); white-space: nowrap; pointer-events: auto; line-height: 1.3; }
+.wlabel.sign { background: var(--earth1); border-color: var(--earth3); }
 
 /* dictionary */
 .dictpanel { position: absolute; right: 2%; top: 3%; width: 36%; max-height: 90%; display: flex; flex-direction: column; background: var(--stone1); border: 2px solid var(--earth3); box-shadow: 3px 3px 0 var(--line); z-index: 20; }
