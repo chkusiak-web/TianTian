@@ -364,7 +364,61 @@ export default {
         }
       ]
     },
-    { id: 'payoff', title: 'Resolution + notebook page 1', npc: 'wang', words: words.payoff, use: null }
+    {
+      id: 'payoff',
+      title: 'Resolution + notebook page 1',
+      npc: 'wang',
+      en: 'You bring the thermos back to Grandma Wang, and read notebook page 1.',
+      words: words.payoff,
+      parts: [
+        {
+          id: 'pay1',
+          title: 'Resolution · the thermos',
+          en: 'Grandma Wang gets her thermos back. Inside the lid, a photo.',
+          words: ['高兴', '看到', '认识', '她', '早上', '知道'],
+          use: {
+            place: 'By the railing at Baotu Spring',
+            steps: [
+              { note: 'Grandma Wang is still by the railing. She sees the white thermos in your hands.' },
+              { npc: 'wang', face: 'happy', zh: '我的杯子！我很高兴！', en: 'My cup! I\'m so happy!' },
+              { ask: 'listen', npc: 'wang', face: 'happy', zh: '我很高兴！', en: 'I\'m so happy!', label: 'Listening · how does she feel?', q: 'How does Grandma Wang feel?', options: ['很高兴', '不高兴', '很多年'], answer: '很高兴' },
+              { build: true, npc: 'wang', label: 'Speaking · say who had it', q: 'Say: I saw Lele.', answer: '我看到乐乐了。', accept: ['我看到乐乐。'], extra: ['你', '她'] },
+              { npc: 'wang', zh: '乐乐？我认识她！', en: 'Lele? I know her! (Ms. Chen\'s child.)' },
+              { ask: 'listen', npc: 'wang', zh: '我认识她！', en: 'I know her!', label: 'Listening · Ms. Chen', q: 'What does Grandma Wang say about Ms. Chen?', options: ['我认识她', '我看到她', '我想要她'], answer: '我认识她' },
+              { ask: 'listen', npc: 'wang', zh: '这是老周的杯子。', en: 'This was Old Zhou\'s cup.', label: 'Listening · whose cup?', q: 'Whose cup was it, really?', options: ['老周的杯子', '乐乐的杯子', '王奶奶的杯子'], answer: '老周的杯子' },
+              { npc: 'wang', zh: '老周天天早上都来这儿，他说：七十三！', en: 'Old Zhou came here every morning, and he said: seventy-three!' },
+              { ask: 'listen', npc: 'wang', zh: '老周天天早上都来这儿。', en: 'Old Zhou came here every morning.', label: 'Listening · when?', q: 'When did Old Zhou come here?', options: ['天天早上', '天天下午', '上午九点'], answer: '天天早上' },
+              { note: 'She opens the lid. Tucked inside is a small photo: a stone carved with 七十三.' },
+              { npc: 'wang', face: 'confused', zh: '你知道七十三吗？', en: 'Do you know what seventy-three is?' },
+              { build: true, npc: 'wang', label: 'Speaking · be honest', q: 'Say: I don\'t know.', answer: '我不知道。', extra: ['你', '她'] },
+              { npc: 'wang', zh: '我也不知道。你的本子！', en: 'I don\'t know either. Your notebook!' }
+            ]
+          }
+        },
+        {
+          id: 'pay2',
+          title: 'Payoff · notebook page 1',
+          intro: 'You open Old Zhou\'s notebook by the spring. The ink is clearer now.',
+          en: 'Read notebook page 1, then lunch at Grandma Wang\'s.',
+          words: ['做', '饭', '好吃', '现在', '吧', '还有'],
+          use: {
+            place: 'By the railing at Baotu Spring',
+            steps: [
+              { npc: 'wang', face: 'happy', zh: '我做饭，你来吧！', en: 'I\'ll cook. Come over!' },
+              { ask: 'listen', npc: 'wang', face: 'happy', zh: '我做饭，你来吧！', en: 'I\'ll cook. Come over!', label: 'Listening · what does she offer?', q: 'What does Grandma Wang offer?', options: ['做饭', '喝水', '门票'], answer: '做饭' },
+              { build: true, npc: 'wang', label: 'Speaking · accept', q: 'Say: I\'ll come now!', answer: '我现在来！', extra: ['你', '吧'] },
+              { npc: 'wang', face: 'happy', zh: '我做的饭很好吃！', en: 'My cooking is delicious!' },
+              { ask: 'listen', npc: 'wang', zh: '我做的饭很好吃！', en: 'My cooking is delicious!', label: 'Listening · her cooking', q: 'What does she say about her cooking?', options: ['很好吃', '很高兴', '很多年'], answer: '很好吃' },
+              { note: 'Before you go, you open the notebook. Page 1 reads clearly now. Read it from the top.' },
+              { ask: 'read', zh: '济南有七十二名泉。你知道吗？还有一个泉。', en: 'Jinan has seventy-two famous springs. Did you know? There is one more spring.', label: 'Reading · notebook page 1', q: 'What does Old Zhou say there is?', options: ['还有一个泉', '还有一个杯子', '还有一个孩子'], answer: '还有一个泉' },
+              { ask: 'read', zh: '我找了很多年。现在，你来找吧。', en: 'I looked for it for many years. Now it\'s your turn to look.', label: 'Reading · notebook page 1', q: 'What does he ask you to do now?', options: ['你来找吧', '你来喝水吧', '你来回答吧'], answer: '你来找吧' },
+              { ask: 'read', zh: '先去认识王奶奶。她做的饭很好吃。', en: 'First, go and meet Grandma Wang. Her cooking is delicious.', label: 'Reading · notebook page 1', q: 'Who does he tell you to meet first?', options: ['王奶奶', '乐乐', '老潘'], answer: '王奶奶' },
+              { note: 'Seventy-two famous springs, and one more: the seventy-third. Old Zhou looked for it for years. Now it\'s your turn.' }
+            ]
+          }
+        }
+      ]
+    }
   ],
 
   // Old Zhou's notebook, page 1 (§5.1). One entry per sentence; a sentence comes into focus when all its words are caught.

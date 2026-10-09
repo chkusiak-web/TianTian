@@ -208,3 +208,29 @@ test('Challenge: Lele\'s riddle duel — 4 hearts after the clue mistake, lose, 
   await expect(page.locator('#hint')).toContainText('thermos back');
   expect(errors).toEqual([]);
 });
+
+test('Payoff: return the thermos, read notebook page 1, and Baotu is done', async ({ page }) => {
+  test.setTimeout(300000);
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?dev');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
+  await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
+  await page.click('.storycard button');
+  await expect(page.locator('.introhz')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await page.keyboard.press('`');
+  await page.selectOption('#dvbeat', '5'); await page.click('#dvjump');
+  await page.keyboard.press('`');
+  await expect(page.locator('#hint')).toContainText('thermos back');
+
+  await page.click('.spot.k-place[data-id="spring"]');
+  await page.click('.hot.k-npc[data-id="wang"]');
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  expect(await page.evaluate(() => window.__store.state.progress.part)).toBe(1);
+  await expect(page.locator('.storycard')).toContainText('notebook');
+  await autoplay(page, () => window.__store.state.progress.beat === 6);
+  await expect(page.locator('#hint')).toContainText('beats are done');
+  expect(errors).toEqual([]);
+});
