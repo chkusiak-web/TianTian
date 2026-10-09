@@ -85,8 +85,8 @@
     "wang": {
       "src": null,
       "look": {
-        "hair": "#C9C3B6",
-        "top": "#C2573F",
+        "hair": "#CAC4BA",
+        "top": "#C9573D",
         "bottom": "#7D5A3C",
         "trait": "thermos",
         "long": false
@@ -96,8 +96,8 @@
     "zhang": {
       "src": null,
       "look": {
-        "hair": "#8E8A82",
-        "top": "#F3EFE6",
+        "hair": "#E2DED6",
+        "top": "#3E5078",
         "bottom": "#2A2622",
         "trait": "beard"
       },
@@ -106,8 +106,8 @@
     "chen": {
       "src": null,
       "look": {
-        "hair": "#2A2622",
-        "top": "#5C6A7E",
+        "hair": "#2B2420",
+        "top": "#566878",
         "bottom": "#2A2622",
         "trait": "bun"
       }
@@ -115,8 +115,8 @@
     "xie": {
       "src": null,
       "look": {
-        "hair": "#7D5A3C",
-        "top": "#E58FA8",
+        "hair": "#8E6040",
+        "top": "#F08FA8",
         "bottom": "#3E5C8A",
         "long": true
       }
@@ -125,10 +125,10 @@
       "src": null,
       "look": {
         "hair": "#2A2622",
-        "top": "#E8B93A",
+        "top": "#F0C048",
         "bottom": "#3A95BE",
         "trait": "cap",
-        "cap": "#3A95BE",
+        "cap": "#D9573A",
         "kid": true
       }
     },
@@ -136,17 +136,17 @@
       "src": null,
       "look": {
         "hair": "#2A2622",
-        "top": "#8E8A82",
+        "top": "#8C9399",
         "bottom": "#2A2622",
         "trait": "cap",
-        "cap": "#2A2622"
+        "cap": "#555766"
       }
     },
     "lin": {
       "src": null,
       "look": {
-        "hair": "#2A2622",
-        "top": "#3A95BE",
+        "hair": "#24242C",
+        "top": "#2F6FD6",
         "bottom": "#F3EFE6",
         "long": true
       }
@@ -164,7 +164,7 @@
       "src": null,
       "look": {
         "hair": "#2A2622",
-        "top": "#A8DC5A",
+        "top": "#E08A3C",
         "bottom": "#7D5A3C",
         "kid": true
       }
