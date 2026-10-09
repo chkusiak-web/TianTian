@@ -1,5 +1,5 @@
 // The save file. Bump SAVE_VERSION and add a step in migrations.js whenever the shape changes.
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export const SAVE_KEY = 'working-title:save';
 
 export const defaultSave = () => ({
@@ -10,12 +10,14 @@ export const defaultSave = () => ({
   words: {},
   // word id -> true, for words that appeared in a line heard or read but are not caught yet
   seen: {},
+  // word id -> true, for words missed before they were caught: they come back in the next Refresh
+  pending: {},
   // word id -> [{ zh, src }] sentences the word was met in (feeds context cards in Refresh)
   ctx: {},
   progress: {
     stage: 'opening',        // opening | home | district
     beat: 0,                 // index of the next beat to play (0-5); 6 = all beats done
-    beatStep: 'refresh',     // refresh | learn | use | notebook
+    beatStep: 'refresh',     // refresh | learn | use | notebook | done (the step to resume at)
     clueMistake: false,      // misheard 四 as 十 in beat 4 (challenge starts with 4 hearts)
     challengeWon: false,
     notebookClear: {},       // line index -> true

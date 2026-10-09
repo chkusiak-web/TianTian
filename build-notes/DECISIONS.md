@@ -26,3 +26,12 @@
 24. Baotu word sets are bigger than §2.2's 5–10 (user choice A): the §5.1 lines and notebook page 1 need 87 words. A 12-word core set is taught in the opening taxi ride, then 11–14 per beat. All §5.1 lines and page 1 stay as written. Plan: `content/baotu-words.json`, made by `node tools/assign-words.js --write`.
 25. 十 and 四 are both taught at the ticket window (四十块), right before the fish-pool beat tests 四 vs 十 by ear.
 26. 白 is taught as "white" in the Hook (the lexicon also lists 白 as Dr. Bai's surname).
+27. The opening runs before the park as a session (Learn its 12 words → Old Pan's taxi and Teacher Zhang's handover → the notebook), because the Hook's lines use those words. Built in checkpoint 3 instead of 5; the courtyard home screen is still checkpoint 5.
+28. Catching (§2.1 vs §6.5): Learn drills only mark a word seen; the scene's prompts catch it (first right answer). A word missed before it is caught waits in `pending` and comes back in the next Refresh, where the first right answer catches it ("goes to review first"). Save schema v2 adds `pending`.
+29. Learn runs in groups of four words: intro cards (Listen, Strokes, pinyin on P), then two quick drills per word (read or hear, plus pick, tone or trace). A missed drill comes back three cards later, at most three times. Record/Compare is left out (the brief asks for Listen and Strokes).
+30. The hover lock also covers a drill prompt that is itself the tested word (otherwise hovering 杯子 answers "what does it mean?"). Scene questions keep choice B: the question stays hoverable.
+31. Listening prompts in a scene: the line just spoken stays hidden until you answer. Silent mode shows it, so the prompt becomes reading.
+32. Build prompts: punctuation is not a tile; only the word order is checked.
+33. Notebook: names and punctuation are always legible, and the page header 「七十三」 is written plainly from day one (§5.1 says the notebook is all smudges except 七十三, but 十 is only taught at the ticket window). Page 1 keeps the spec's four lines.
+34. Beat rules in `npm run check`: a scene only uses words from its own beat or earlier ones (so every unknown word is one you just learned), each beat word is used twice and is the answer to a prompt, and a beat has 40–150 characters (lines plus what you say).
+35. A 本子 button in the corner opens the notebook any time. Clicking the corner hint resumes a paused opening. Talking to the marked person starts or resumes their beat.

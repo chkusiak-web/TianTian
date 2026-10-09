@@ -3,15 +3,17 @@
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (tiles, total) => `${(tiles * 16 / total) * 100}%`;
 
-export function createHud({ map, onSettings, onDictionary }) {
+export function createHud({ map, onSettings, onDictionary, onNotebook, onHint }) {
   const overlay = document.getElementById('overlay');
   const hud = document.createElement('div');
   hud.className = 'hud';
-  hud.innerHTML = `<div class="place"><span class="zh">${esc(map.name.zh)}</span> <span class="pen">${esc(map.name.en)}</span><span class="hint" id="hint"></span></div>
-    <div class="hudbtns"><button class="btn" id="hudDict" title="Dictionary (⌘K)">词典</button><button class="btn" id="hudSet" title="Settings">⚙ Settings</button></div>`;
+  hud.innerHTML = `<div class="place"><span class="zh">${esc(map.name.zh)}</span> <span class="pen">${esc(map.name.en)}</span><button class="hint" id="hint"></button></div>
+    <div class="hudbtns"><button class="btn" id="hudBook" title="Old Zhou's notebook">本子</button><button class="btn" id="hudDict" title="Dictionary (⌘K)">词典</button><button class="btn" id="hudSet" title="Settings">⚙ Settings</button></div>`;
   overlay.appendChild(hud);
   hud.querySelector('#hudSet').onclick = onSettings;
   hud.querySelector('#hudDict').onclick = onDictionary;
+  hud.querySelector('#hudBook').onclick = onNotebook;
+  hud.querySelector('#hint').onclick = onHint;
 
   const labels = document.getElementById('labels');
   labels.innerHTML = '';

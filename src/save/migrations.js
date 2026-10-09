@@ -3,7 +3,9 @@ import { SAVE_VERSION, defaultSave } from './schema.js';
 // MIGRATIONS[n] upgrades a save from version n to n+1.
 export const MIGRATIONS = {
   // 0 -> 1: an unversioned blob gets the v1 defaults filled in around whatever it had
-  0: (d) => deepFill({ ...d, v: 1 }, defaultSave())
+  0: (d) => deepFill({ ...d, v: 1 }, defaultSave()),
+  // 1 -> 2: words missed before they were caught wait in `pending` (checkpoint 3)
+  1: (d) => ({ ...d, pending: d.pending || {} })
 };
 
 function deepFill(target, defaults) {

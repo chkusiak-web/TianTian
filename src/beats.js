@@ -1,10 +1,4 @@
-// Beat list for dev tools and the Today card. Filled in by content/baotu.js from checkpoint 3 on;
-// for now just the titles from the beat map in build-notes/PLAN.md.
-export const BEATS = [
-  { id: 'hook', title: 'Hook · Grandma Wang\'s thermos', words: [] },
-  { id: 'inv1', title: 'Investigate 1 · tai chi group', words: [] },
-  { id: 'inv2', title: 'Investigate 2 · ticket window', words: [] },
-  { id: 'inv3', title: 'Investigate 3 · Gate 4', words: [] },
-  { id: 'challenge', title: 'Challenge · Lele\'s riddle duel', words: [] },
-  { id: 'payoff', title: 'Resolution + notebook page 1', words: [] }
-];
+// Beat list for dev tools, the hint and the marker: the playable beats of content/baotu.js (the opening is separate).
+import baotu from '../content/baotu.js';
+export const OPENING = baotu.beats.find((b) => b.id === 'opening');
+export const BEATS = baotu.beats.filter((b) => b.id !== 'opening');

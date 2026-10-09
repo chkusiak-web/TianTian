@@ -1,5 +1,6 @@
 // Chinese everywhere: hover for pinyin, click for English. Ported from 天天's hz.js as a module.
-// While a question is open (setHzLock(true)) the answer tiles (.answers) show no pinyin or English until you answer.
+// While a question is open (setHzLock(true)) the answer tiles (.answers) show no pinyin or English until you answer,
+// and neither does a prompt that is itself the word being tested (.lockzh, e.g. 杯子 → "what does it mean?").
 // The question itself stays hoverable (user choice B, see build-notes/DECISIONS.md).
 import { splitWords, pinyinOf, englishOf, HAN } from '../lexicon.js';
 
@@ -42,7 +43,7 @@ function showTip(el, text) {
 }
 export function hideTip() { if (tip) { tip.hidden = true; tip.classList.remove('lock'); } tipEl = null; }
 
-const blocked = (el) => locked && el.closest('.answers');
+const blocked = (el) => locked && el.closest('.answers, .lockzh');
 
 export function initHz(root = document.body) {
   tip = document.createElement('div'); tip.className = 'hztip'; tip.hidden = true; document.body.appendChild(tip);

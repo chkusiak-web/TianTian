@@ -20,3 +20,24 @@ describe('content validator', () => {
     expect(r.problems).toHaveLength(1); expect(r.problems[0]).toMatch(/a\[1\]\.zh/);
   });
 });
+
+import { checkBeatRules } from '../../tools/lib/beatrules.js';
+import baotu from '../../content/baotu.js';
+
+describe('beat rules (§6.10)', () => {
+  const beat = (steps, words = ['杯子']) => ({ district: 'baotu', beats: [{ id: 'x', words, scene: { maxChars: 999, steps } }] });
+  const filler = { who: 'wang', zh: '杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子杯子' };
+  it('passes the real Baotu content', () => { expect(checkBeatRules(baotu, 'baotu.js')).toEqual([]); });
+  it('flags a word no beat has taught yet', () => {
+    const p = checkBeatRules(beat([filler, { who: 'wang', zh: '你好，杯子！' }, { ask: 'pick', label: 'x', options: ['杯子'], answer: '杯子', words: ['杯子'] }]), 't');
+    expect(p.join()).toMatch(/uses 你好/);
+  });
+  it('flags a beat word that is never the answer, or used only once', () => {
+    const p = checkBeatRules(beat([{ who: 'wang', zh: '杯子' }, { do: 'x' }], ['杯子']), 't');
+    expect(p.join()).toMatch(/not the answer to any prompt/); expect(p.join()).toMatch(/used 1 time/);
+  });
+  it('flags a prompt that catches a word its answer does not use', () => {
+    const p = checkBeatRules(beat([filler, { ask: 'pick', label: 'x', options: ['杯子', '一'], answer: '一', words: ['杯子'] }], ['杯子', '一']), 't');
+    expect(p.join()).toMatch(/doesn't use it/);
+  });
+});
