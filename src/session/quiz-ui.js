@@ -7,6 +7,7 @@ import { splitWords, lookup, pinyinOf, numToMarks } from '../lexicon.js';
 
 export { esc } from '../core/esc.js';
 import { esc } from '../core/esc.js';
+import { judgeBuild } from './close.js';
 const devOn = () => { try { return !!window.__store.state.dev.autoAnswer; } catch { return false; } };
 
 // gloss for the confirm box: pinyin · English of a word or phrase
@@ -24,17 +25,20 @@ document.addEventListener('keydown', (e) => { if (keyFn && !/^(input|textarea|se
 const setKeys = (f) => { keyFn = f; };
 
 // Show the result: ✓ goes on by itself; ✗ shows the right answer and waits (天天's confirm box)
-export function confirmBox(area, ok, answerHtml, glossText) {
+export function confirmBox(area, ok, answerHtml, glossText, { close = false } = {}) {
   return new Promise((resolve) => {
     const box = document.createElement('div');
-    box.className = 'confirm ' + (ok ? 'ok' : 'no');
-    box.innerHTML = ok
+    box.className = 'confirm ' + (ok ? 'ok' : 'no') + (close ? ' close' : '');
+    box.innerHTML = ok && close
+      ? `<span class="mark">✓</span> Close enough. Also natural: <b class="zh">${answerHtml}</b>${glossText ? ` <span class="note">${esc(glossText)}</span>` : ''}
+         <button class="btn primary cgo">Continue <kbd>Enter</kbd></button>`
+      : ok
       ? `<span class="mark">✓</span> Right`
       : `<span class="mark">✗</span> The answer is <b class="zh">${answerHtml}</b>${glossText ? ` <span class="note">${esc(glossText)}</span>` : ''}
          <button class="btn primary cgo">Continue <kbd>Enter</kbd></button>`;
     area.appendChild(box);
     const done = () => { setKeys(null); resolve(); };
-    if (ok) { setTimeout(done, 650); return; }
+    if (ok && !close) { setTimeout(done, 650); return; }
     box.querySelector('.cgo').onclick = done;
     setKeys((e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); done(); } });
     box.querySelector('.cgo').focus({ preventScroll: true });
@@ -65,7 +69,7 @@ export function askChoice(area, { options, answer, answerHtml, glossText }) {
 
 // Build a sentence from word tiles (CONCEPT §6.9). Punctuation is added back for display; only the words count.
 // `accept`: other answers that are also right (e.g. 谢谢！ for "thank him" when the model answer is 谢谢你！).
-export function askBuild(area, { answer, accept = [], extra = [], rng = Math.random, allowHint = true }) {
+export function askBuild(area, { answer, accept = [], optional = [], extra = [], rng = Math.random, allowHint = true }) {
   return new Promise((resolve) => {
     const target = splitWords(answer).filter((p) => p.w).map((p) => p.t);
     const tiles = [...target, ...extra].map((t, i) => ({ t, i })).sort(() => rng() - 0.5);
@@ -86,13 +90,14 @@ export function askBuild(area, { answer, accept = [], extra = [], rng = Math.ran
     };
     const check = async () => {
       if (done || !placed.length) return; done = true; setKeys(null);
-      const words = (s) => splitWords(s).filter((p) => p.w).map((p) => p.t).join('|');
-      const got = placed.map((p) => p.t).join('|');
-      const ok = [answer, ...accept].some((a) => words(a) === got);
+      const words = (s) => splitWords(s).filter((p) => p.w).map((p) => p.t);
+      const verdict = judgeBuild(placed.map((p) => p.t), [answer, ...accept].map(words), { optional });
+      const ok = verdict !== 'wrong';
       wrap.querySelectorAll('button').forEach((b) => (b.disabled = true));
+      wrap.classList.add('checked', ok ? 'ok' : 'no');   // your answer stays readable, marked right or wrong
       setHzLock(false);
-      await confirmBox(area, ok, esc(answer), target.map(pinyinOf).join(' '));
-      resolve({ ok, hint: hinted, said: placed.map((p) => p.t).join('') });
+      await confirmBox(area, ok, esc(answer), target.map(pinyinOf).join(' '), { close: verdict === 'close' });
+      resolve({ ok, close: verdict === 'close', hint: hinted, said: placed.map((p) => p.t).join('') });
     };
     wrap.querySelector('.bundo').onclick = () => { placed.pop(); draw(); };
     wrap.querySelector('.bcheck').onclick = check;

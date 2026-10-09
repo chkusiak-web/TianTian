@@ -73,7 +73,7 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, back
         const area = box.ask.querySelector('.qarea');
         let r;
         if (step.ask) r = await askChoice(area, { options: step.options.map((o) => ({ html: esc(o), value: o, zh: true })), answer: step.answer, answerHtml: esc(step.answer), glossText: gloss(step.answer) });
-        else r = await askBuild(area, { answer: step.answer, accept: step.accept || [], extra: step.extra || [] });
+        else r = await askBuild(area, { answer: step.answer, accept: step.accept || [], optional: step.optional || [], extra: step.extra || [] });
         if (r.hint) result.hints++;
         if (!r.ok) result.misses++;
         if (hidden) { box.line.textContent = step.zh; box.line.classList.remove('hiddenline'); }

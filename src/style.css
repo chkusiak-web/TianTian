@@ -181,6 +181,8 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 .confirm { display: flex; align-items: center; gap: .6em; flex-wrap: wrap; justify-content: center; padding: .5em .9em; border-radius: .7em; }
 .confirm .mark { font-weight: 900; font-size: 1.2em; }
 .confirm.ok { color: var(--green); font-weight: 700; }
+.confirm.ok.close { background: var(--lawn-l); color: var(--ink); font-weight: 600; }
+.confirm.ok.close .mark { color: var(--green); }
 .confirm.no { background: var(--red-l); }
 .confirm.no .mark { color: var(--red); }
 .build { display: flex; flex-direction: column; gap: .7em; align-items: center; width: 100%; }
@@ -188,6 +190,9 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 .tiles { display: flex; gap: .5em; flex-wrap: wrap; justify-content: center; }
 .tile { font: 500 var(--zh) var(--font-zh); padding: .2em .65em; }
 .tile:disabled { opacity: .3; }
+.build.checked .slots .tile:disabled { opacity: 1; }
+.build.checked.ok .slots .tile { background: var(--lawn-l); border-color: var(--green); box-shadow: 0 .22em 0 var(--green); }
+.build.checked.no .slots .tile { background: var(--red-l); border-color: var(--red); box-shadow: 0 .22em 0 var(--red); }
 .trace .tracebox { background: #fff; border: 2px solid var(--rule); border-radius: .6em; width: 200px; height: 200px; }
 
 /* conversation (Use) */

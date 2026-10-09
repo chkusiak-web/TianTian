@@ -6,8 +6,11 @@
 //   { npc, zh, en }                                   a line someone says
 //   { ask: 'listen' | 'read', npc, zh, en, label, q, options, answer }
 //                                                     they say (listen) or show (read) zh; you pick the answer
-//   { build: true, npc, zh?, en?, label, q, answer, extra }
-//                                                     you build `answer` from word tiles (its words + `extra`)
+//   { build: true, npc, zh?, en?, label, q, answer, extra, accept?, optional? }
+//                                                     you build `answer` from word tiles (its words + `extra`).
+//                                                     `accept`: other right answers. Close answers also count
+//                                                     (src/session/close.js): a repeated word said once, 吧/啊/呀/呢,
+//                                                     and words listed in `optional` may be left out or added.
 //   { note }                                          English narration between lines
 import W from './baotu-words.json' with { type: 'json' };
 
