@@ -8,7 +8,7 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto('/?dev');
   await page.evaluate(() => localStorage.clear()); await page.reload();
-  await page.waitForFunction(() => window.__scene && window.__store);
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
   await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
 
   // the arrival starts by itself
@@ -22,7 +22,7 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   await page.keyboard.press('Escape');
   await expect(page.locator('.sheet')).toHaveCount(0);
   await page.reload();
-  await page.waitForFunction(() => window.__scene && window.__store);
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
   expect((await state(page)).progress.openingStep).toBe('learn');
   await expect(page.locator('.sheet .steps li.now')).toHaveText(/Learn/);
 
@@ -36,10 +36,9 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   expect(Object.keys(s.words).length).toBe(openingWords);           // every opening word caught, nothing else
   expect(s.stats.conversations).toBe(1);
 
-  // walk to Grandma Wang and play the Hook
-  await page.evaluate(() => window.__scene.player.setPosition(12.5 * 16, 11.9 * 16));
-  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(150); await page.keyboard.up('ArrowUp');
-  await page.keyboard.press('Space');
+  // open the spring on the board and click Grandma Wang to play the Hook
+  await page.click('.hot.k-place[data-id="spring"]');
+  await page.click('.hot.k-npc[data-id="wang"]');
   await expect(page.locator('.sheet .sheettitle')).toContainText('Hook');
   await autoplay(page, () => !!document.querySelector('.convo .dask .choices'));
   await expect(page.locator('.convo .dname')).toContainText('王奶奶');

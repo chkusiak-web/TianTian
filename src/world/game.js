@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BaotuScene } from './baotu-scene.js';
+import { DistrictScene } from './district-scene.js';
 
 export function createGame(parent, hooks) {
   return new Phaser.Game({
@@ -9,7 +9,7 @@ export function createGame(parent, hooks) {
     pixelArt: true, roundPixels: true, antialias: false,
     backgroundColor: '#D9F1F7',
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    input: { keyboard: false },   // walking keys come from world/input.js
-    scene: [new BaotuScene(hooks)]
+    input: { keyboard: false, mouse: false, touch: false },   // clicks go to the HTML buttons in ui/hud.js
+    scene: [new DistrictScene(hooks)]
   });
 }

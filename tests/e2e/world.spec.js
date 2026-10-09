@@ -1,80 +1,75 @@
 import { test, expect } from '@playwright/test';
 
-// Walk by holding keys until a condition holds (or time runs out)
-async function walk(page, key, until, ms = 4000) {
-  await page.keyboard.down(key);
-  const t0 = Date.now();
-  while (Date.now() - t0 < ms && !(await page.evaluate(until))) await page.waitForTimeout(30);
-  await page.keyboard.up(key);
-}
-const pos = (page) => page.evaluate(() => ({ x: window.__scene.player.x, y: window.__scene.player.y, near: window.__scene.near && window.__scene.near.id }));
+const view = (page) => page.evaluate(() => ({ view: window.__scene.view, place: window.__scene.place && window.__scene.place.id }));
+const marker = (page) => page.evaluate(() => ({ vis: window.__scene.marker.visible, x: window.__scene.marker.x }));
 
-test('checkpoint 2: walk the park, talk to Grandma Wang, read a sign, marker follows the beat', async ({ page }) => {
+test('scene map: board → place → talk, read a sign, back to the board, marker follows the beat', async ({ page }) => {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto('/?dev');
-  // skip the arrival: start in the park at beat 1
+  // skip the arrival: start at the district board at beat 1
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('working-title:save', JSON.stringify({ v: 1, progress: { stage: 'district', beat: 0, openingStep: 'done' } })); });
   await page.reload();
-  await page.waitForFunction(() => window.__scene && window.__scene.player);
+  await page.waitForFunction(() => window.__scene && window.__scene.view);
 
-  // HUD: place and next step
+  // the board: five places, today's (the spring) marked, labels in Chinese with hover
+  expect(await view(page)).toEqual({ view: 'board', place: null });
+  await expect(page.locator('.hot.k-place')).toHaveCount(5);
   await expect(page.locator('.place')).toContainText('趵突泉');
   await expect(page.locator('#hint')).toContainText('Grandma Wang');
+  expect((await marker(page)).vis).toBe(true);
+  await page.locator('.hot.k-place[data-id="taichi"]').hover();
+  await expect(page.locator('.reach')).toContainText('tai chi');
 
-  // marker over Grandma Wang
-  const m = await page.evaluate(() => ({ mx: window.__scene.marker.x, wx: window.__scene.npcs.find((n) => n.id === 'wang').x, vis: window.__scene.marker.visible }));
-  expect(m.vis).toBe(true); expect(m.mx).toBe(m.wx);
-
-  // water blocks you: walking straight up from the south gate stops at the pool rim
-  await walk(page, 'ArrowUp', () => false, 2500);
-  const p1 = await pos(page);
-  expect(p1.y).toBeGreaterThan(10 * 16);
-
-  // walk left until Grandma Wang is in reach (she has today's beat, so the marker is on her)
-  await walk(page, 'ArrowLeft', () => window.__scene.near && window.__scene.near.id === 'wang');
-  expect((await pos(page)).near).toBe('wang');
+  // someone without a beat today just chats: Xiao Xie at the fish pool. No marker there.
+  await page.click('.hot.k-place[data-id="fish"]');
+  expect(await view(page)).toEqual({ view: 'place', place: 'fish' });
+  expect((await marker(page)).vis).toBe(false);
+  await page.locator('.hot.k-npc[data-id="xie"]').hover();
   await expect(page.locator('.reach')).toContainText('Talk');
-
-  // someone without a beat today just chats: Xiao Xie by the fish pool
-  await page.evaluate(() => window.__scene.player.setPosition(9.5 * 16, 11.6 * 16));
-  await walk(page, 'ArrowDown', () => window.__scene.near && window.__scene.near.id === 'xie', 1500);
-  await page.keyboard.press('Space');
+  await page.click('.hot.k-npc[data-id="xie"]');
   await expect(page.locator('.dialogue')).toBeVisible();
   await expect(page.locator('.dialogue .dline')).toContainText('小谢');
-  // hover works in dialogue lines; walking is frozen while it's open
   await page.locator('.dialogue .dline .hz').first().hover();
   await expect(page.locator('.hztip')).toHaveText(/nǐ hǎo/);
-  const before = await pos(page);
-  await walk(page, 'ArrowRight', () => false, 400);
-  expect((await pos(page)).x).toBe(before.x);
-  await page.keyboard.press('Space');
+  // Esc closes the dialogue but stays in the place
+  await page.keyboard.press('Escape');
   await expect(page.locator('.dialogue')).toHaveCount(0);
+  expect((await view(page)).place).toBe('fish');
 
-  // read the Gate 4 sign: start beside the signpost (the walking itself is covered above)
-  await page.evaluate(() => window.__scene.player.setPosition(17.6 * 16, 3.9 * 16));
-  await walk(page, 'ArrowLeft', () => window.__scene.near && window.__scene.near.kind === 'sign', 3000);
-  expect((await pos(page)).near).toBe('gate4');
-  await expect(page.locator('.reach')).toContainText('Read');
-  await page.keyboard.press('Space');
+  // back to the board with the button, then the spring: the marker sits over Grandma Wang
+  await page.click('#hudBack');
+  expect((await view(page)).view).toBe('board');
+  await page.click('.hot.k-place[data-id="spring"]');
+  const m = await marker(page);
+  const wx = await page.evaluate(() => window.__scene.targets.find((t) => t.id === 'wang').x);
+  expect(m.vis).toBe(true); expect(m.x).toBe(wx);
+
+  // read the Gate 4 sign by the spring
+  await page.click('.hot.k-sign[data-id="gate4"]');
   await expect(page.locator('.signcard .signtext')).toContainText('四号门');
   await page.keyboard.press('Escape');
   await expect(page.locator('.signcard')).toHaveCount(0);
+  // Esc with nothing open goes back to the board
+  await page.keyboard.press('Escape');
+  expect((await view(page)).view).toBe('board');
 
-  // dev panel: jump to beat 2 → marker moves to Teacher Zhang, hint changes
+  // dev panel: jump to beat 2 → the tai chi square is marked, hint changes
   await page.keyboard.press('`');
   await page.selectOption('#dvbeat', '1');
   await page.click('#dvjump');
-  await expect(page.locator('#hint')).toContainText('tai chi');
-  const m2 = await page.evaluate(() => ({ mx: window.__scene.marker.x, zx: window.__scene.npcs.find((n) => n.id === 'zhang').x }));
-  expect(m2.mx).toBe(m2.zx);
   await page.keyboard.press('`');
+  await expect(page.locator('#hint')).toContainText('tai chi');
+  await page.click('.hot.k-place[data-id="taichi"]');
+  const m2 = await marker(page);
+  const zx = await page.evaluate(() => window.__scene.targets.find((t) => t.id === 'zhang').x);
+  expect(m2.x).toBe(zx);
 
   // settings: slow speech sticks after reload
   await page.click('#hudSet');
   await page.selectOption('#stRate', 'slow');
   await page.keyboard.press('Escape');
   await page.reload();
-  await page.waitForFunction(() => window.__scene && window.__scene.player);
+  await page.waitForFunction(() => window.__scene && window.__scene.view);
   await page.click('#hudSet');
   await expect(page.locator('#stRate')).toHaveValue('slow');
 

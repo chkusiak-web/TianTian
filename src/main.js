@@ -5,14 +5,13 @@ import { initHz } from './hz/hz.js';
 import { initDictionary } from './ui/dictionary.js';
 import { initDevPanel } from './ui/dev-panel.js';
 import { createGame } from './world/game.js';
-import { initInput, releaseAll } from './world/input.js';
 import { isModalOpen } from './ui/modal.js';
 import { openDialogue, openSignCard } from './ui/dialogue.js';
 import { openSettings } from './ui/settings.js';
 import { createHud } from './ui/hud.js';
 import { drawPortrait } from './world/draw.js';
 import { todayKey } from './core/clock.js';
-import baotuMap from '../content/baotu-map.js';
+import places from '../content/baotu-places.js';
 import content from '../content/baotu.js';
 import castData from '../content/cast.js';
 import { playSession, storyCard } from './session/runner.js';
@@ -41,15 +40,17 @@ configureAudio({
 initHz(document.getElementById('box'));
 const dict = initDictionary(store);
 const dictOpen = () => !!document.querySelector('.dictpanel');
-initInput(() => isModalOpen() || dictOpen() || busy || !!document.querySelector('.sheet, .storycard'));
+const blocked = () => isModalOpen() || dictOpen() || busy || !!document.querySelector('.sheet, .storycard');
 
 let scene = null;
 const hud = createHud({
-  map: baotuMap,
-  onSettings: () => { releaseAll(); openSettings({ store, toast, onReset: () => { refresh(); maybeStartOpening(); } }); },
+  name: places.name,
+  onSettings: () => { openSettings({ store, toast, onReset: () => { refresh(); maybeStartOpening(); } }); },
   onDictionary: () => dict.open(),
   onNotebook: () => openNotebook(),
-  onToday: () => today()
+  onToday: () => today(),
+  onBack: () => { if (scene && !blocked()) scene.showBoard(); },
+  onTarget: (t) => pick(t)
 });
 
 let busy = false;     // a session is running
@@ -58,10 +59,10 @@ const P = () => store.state.progress;
 function refresh() {
   const p = P();
   if (p.stage === 'opening') { hud.setHint('arrive in Jinan.', busy ? null : p.openingStep && p.openingStep !== 'refresh' ? 'Continue' : 'Begin'); if (scene) scene.setBeat(-1); return; }
-  const place = baotuMap.beatPlaces[p.beat];
+  const place = places.beatPlaces[p.beat];
   const def = content.beats[p.beat];
   let hint = place ? place.hint : 'Baotu\'s beats are done. The gate quiz comes in checkpoint 5.';
-  if (place && def && def.use) hint += p.beatStep === 'use' ? ' (continue the conversation)' : p.beatStep === 'notebook' ? ' (read the notebook)' : ' Press Space next to them.';
+  if (place && def && def.use) hint += p.beatStep === 'use' ? ' (continue the conversation)' : p.beatStep === 'notebook' ? ' (read the notebook)' : '';
   hud.setHint(hint, null);
   if (scene) scene.setBeat(p.beat);
 }
@@ -74,7 +75,7 @@ function today() {
 
 async function startOpening() {
   if (busy) return;
-  busy = true; releaseAll(); hud.showReach(null); refresh();
+  busy = true; hud.clearHover(); refresh();
   try {
     if (!P().openingStep || P().openingStep === 'refresh') await storyCard('You have come to Jinan to settle the estate of your great-uncle, Old Zhou. He lived on Qushuiting Street for fifty years. You don\'t speak Chinese yet.', 'Begin');
     const r = await playSession({ content, index: 0, store, cast: castData.people, portraitFor, onStep: refresh });
@@ -89,7 +90,7 @@ function maybeStartOpening() { if (P().stage === 'opening' && scene) startOpenin
 async function startBeat() {
   const p = P(), def = content.beats[p.beat];
   if (!def.use) { toast('This scene comes in checkpoint 4.'); return; }
-  busy = true; releaseAll(); hud.showReach(null);
+  busy = true; hud.clearHover();
   try {
     const r = await playSession({ content, index: p.beat + 1, store, cast: castData.people, portraitFor, onStep: refresh });
     if (r === 'done') { p.beat++; p.beatStep = 'refresh'; store.save(); toast('Beat complete'); }
@@ -98,7 +99,6 @@ async function startBeat() {
 
 function openNotebook() {
   if (busy || isModalOpen()) return;
-  releaseAll();
   const el = document.createElement('div');
   el.className = 'sheet notebook-modal';
   el.innerHTML = `<div class="sheethead"><div class="sheettitle">本子 · Old Zhou's notebook</div><button class="icon-btn sclose" title="Close (Esc)">✕</button></div><div class="sheetbody">${renderPage(store.state, content.notebook)}</div>`;
@@ -124,21 +124,27 @@ function portraitFor(id) {
   return { src: drawPortrait(p.look || {}).toDataURL(), pixel: true };
 }
 
-async function interact(t) {
-  if (busy) return;
-  const p = P(), place = baotuMap.beatPlaces[p.beat];
-  if (p.stage === 'district' && t.kind === 'npc' && place && place.npc === t.id) return startBeat();
-  releaseAll(); hud.showReach(null);
+// a click on the board opens a place; a click on someone in a place talks to them (or starts today's beat)
+async function pick(t) {
+  if (!scene || blocked()) return;
+  if (t.kind === 'place') return scene.openPlace(t.id);
+  const p = P(), place = places.beatPlaces[p.beat];
+  scene.faceYou(t);
+  if (p.stage === 'district' && t.kind === 'npc' && place && place.npc === t.id && scene.place.id === place.place) return startBeat();
   if (t.kind === 'sign') await openSignCard(t.sign);
   else await openDialogue({ who: t.id, name: t.name, en: t.en, portrait: portraitFor(t.id), lines: t.lines });
-  hud.showReach(scene && scene.near);
 }
 
+// Esc in a place goes back to the board (checked before overlays close themselves on the same key)
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || !scene || scene.view !== 'place' || blocked()) return;
+  scene.showBoard();
+}, true);
+
 window.__game = createGame('phaser', {
-  map: baotuMap,
-  getBeat: () => store.state.progress.beat,
-  onNear: (t) => hud.showReach(isModalOpen() ? null : t),
-  onInteract: (t) => { if (!isModalOpen()) interact(t); },
+  district: places,
+  getBeat: () => (P().stage === 'opening' ? -1 : P().beat),
+  onView: (s) => hud.setView(s),
   onReady: (s) => { scene = s; manifest = s.cache.json.get('manifest'); window.__scene = s; refresh(); maybeStartOpening(); }
 });
 refresh();
