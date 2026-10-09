@@ -64,3 +64,30 @@ build-notes/ PLAN.md DECISIONS.md
 
 ## Word assignment (before any scene is written)
 `tools/assign-words.js` starts from the words §5.1 names, adds greetings/people/countries/numbers 1–10 from 天天's topic tags, targets about 50 HSK 1 words split 9/9/9/8/4/4 across the six beats, and prints the list for your approval.
+
+## Round 4 (design docs package, Oct 9)
+
+Source: `tiantian-kit/game-docs/` CONCEPT §6.10–6.11, FRAMEWORK §8, HSK1-COVERAGE, ART-AND-AUDIO (copied in from the docs thread).
+
+### Now (checkpoint 4b, before the gate quiz)
+1. **Engine, conversation rules (§6.11):**
+   - `reply` step: 2–3 replies in Chinese, at least one wrong or nonsense. A sensible pick is built from tiles and gets its own reaction (`then`); nonsense gets 「啊？什么？」 with a confused face and you choose again. Choices never change the clue path.
+   - Listening is audio first (built); the text also appears after two replays.
+   - Missed listening or reading outside a challenge: no ✗. The repair tiles appear (什么？ 请再说。 慢一点儿！ 我不知道。); building one makes the speaker repeat the line (slower for 慢一点儿), then you answer again. The missed word still goes to review. In a challenge the heart is lost and the repair line replaces the confirm box.
+   - Recasts: a near-miss build (one word missing or extra, or the right words in the wrong order) isn't marked wrong outside a challenge. The NPC says it back correctly, the correct form shows under their line, and the words aren't caught. A wrong build gets 「啊？什么？」 and you try again; the second miss shows the answer.
+2. **Checks (§6.10):** no line asked about right after it's shown; each line checked at most once; no speaking prompt that gives the English sentence ("Say: …"); every reply step has a nonsense option.
+3. **Words:** the repair phrases are taught in the opening (Old Pan talks fast). Habit words move to where each character first speaks. `content/baotu-words.json` is written from the content (`npm run words`), so HSK1-COVERAGE's snapshot can be re-copied.
+4. **Content:** rewrite all 12 Baotu sessions to the rules: merge "line, then ask about the line" into one audio-first prompt, turn "Say: …" into situations and reply choices, add each character's verbal habit (§6.11 rule 5), cut lines that exist only to fit a word (rule 6).
+5. **Tests:** unit tests for the judge (near), reply steps and the new checks; e2e autoplay handles reply choices; all Baotu e2e runs stay green.
+
+### Next
+- **Gate quiz** (checkpoint 5), then the playtest checklist.
+- **"Show understanding by doing"** steps: click the left path after 「前边，左边！」, pick the gate on the park board after 「他去了四号门！」.
+- **Manifest rewrite** for the scene-map sizes (4×8, 8×12, 14×22) and portraits (ART §2.1), so hand-drawn people can drop in.
+- **Recorded audio hook:** `audio/manifest.json` keyed by a hash of line + speaker; play the file if present, else Web Speech (FRAMEWORK §5).
+
+### Decided, done later
+- Phaser stays. Hosting is GitHub Pages with a test URL per checkpoint (set up when Moondog wants the first link). Desktop wrapper is decided after Jinan.
+- Copy 天天's `talk.js` when the first typed prompt is built, behind the typing setting.
+- Save version 2 (`progress.districts[id]`, `people[id]`) with a migration and unit test, before District 2 starts.
+- Portraits are the code-drawn pixel ones (`src/world/portraits.js`); Chinese font is Noto Sans SC everywhere (built).

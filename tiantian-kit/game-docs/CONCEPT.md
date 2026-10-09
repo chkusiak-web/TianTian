@@ -2,6 +2,8 @@
 
 Version 0.3 · Oct 9, 2026 · builds on `CONCEPT-73rd-Spring.md` (Oct 8)
 
+**Round 4** added the conversation rules (§6.11).
+
 **What changed in 0.3** (round 3): word tiles are the default and typing is optional; gate-quiz misses repeat until right instead of failing you; the Prove step is folded into the scene; only Baotu and Furong are designed in full; yuan is cut.
 
 **This is a language-learning game first.** The story, the city and the neighbors exist to give the Chinese a reason and a context. Where the concept had to change to fit that, or to fit HSK 1, the change is flagged with **⚑** and repeated in `OPEN-QUESTIONS.md`.
@@ -136,7 +138,7 @@ Opening (arrive, inherit the house, the notebook is almost all smudges)    1 ses
 
 ### 3.2 The scene map
 
-- **City map:** 天天's painted Jinan map (`jinan-base-map@2x.png`), with the 10 districts as seals. Open districts are in color, locked ones grey. Click one to go there. No travel time.
+- **City map:** the visual-language thread's Jinan overview map (v0.4 style), with the 10 districts as seals. Open districts are in color, locked ones grey. Click one to go there. No travel time.
 - **District board:** a single pixel illustration of the district with 3–5 clickable places (the ticket window, the tai chi square, Gate 4…). The place for today's beat glows. Other places hold reruns, side documents and odd jobs.
 - **A scene:** one pixel background with the people in it (idle animations), opened from the board. Clicking a person opens the conversation overlay. Clicking an object (a sign, a ledger, a photo) opens a reading card. The scene *is* the drill's frame.
 - **Your courtyard** is the home screen: the notebook, the phone (词典), the gift shelf (gifts you've been given and can pass on), 小七 the cat, and today's tea cup.
@@ -534,6 +536,58 @@ These are checked by scripts in `tools/`, not by eye.
 | Words above the city's level | Only names, particles, the fixed expression and the district's taught words |
 | Earlier-district words reused per arc | At least 15% of each arc's lines |
 | Session time outside Chinese | Under 1 minute (playtest measure) |
+| A line checked twice (shown, then asked about) | Never. Each line is checked at most once |
+| Speaking prompts that give the English sentence to say | None. Prompts give the situation or goal |
+| Reply choices with at least one wrong or nonsense option | All of them |
+
+### 6.11 Conversation rules
+
+Round 4 (Moondog, Oct 9). These apply to every scene, not only challenges. They come from reading the Baotu scenes as built: the player was told what to say in 23 of 24 speaking prompts, and 18 of 31 questions asked about a line that had just been shown.
+
+**1. You choose what to say, not how to translate it.**
+
+- A speaking prompt gives the situation or the goal ("Ms. Chen wants to know if you're a tourist."), never the English sentence.
+- **Reply choices:** many prompts offer 2–3 replies in Chinese. You pick one, then build it from tiles. At least one reply is wrong for the moment or plain nonsense.
+- **A sensible reply** gets its own reaction. Example, at the ticket window:
+  - 「是，我是游客。」 → 「门票四十块。」
+  - 「不是。我是老周的孩子。」 → 「老周的孩子？！老周天天来这儿！」 Ms. Chen is warmer from then on.
+- **A wrong or nonsense reply** gets confusion, not a red ✗: 「啊？什么？」 or 「你说什么？」, with a puzzled look. You choose again. Example: answering 「我是杯子。」 to Ms. Chen gets 「……你是杯子？什么？」
+- **Choices are small** (round 4, answer 3A): they change a reaction, someone's warmth or a friendship moment (§6.4). They never change the clue path or the story.
+
+**2. No echo questions.**
+
+- A line is never shown and then asked about straight away.
+- **Listening is audio first.** An NPC line plays with its text hidden. The text appears after you answer, or after you replay it twice.
+- **Each line is checked once at most.** Many lines aren't checked at all; they're just heard and read.
+- **Show understanding by doing,** where the scene allows: after 「前边，左边！」 you click the left-hand path, and after 「他去了四号门！」 you walk to a gate on the park map.
+
+**3. Repair lines appear after a mistake.**
+
+- When you miss a listening or reading question, you don't get a ✗. The repair tiles appear instead: 「什么？」 「请再说。」 「慢一点儿！」 「我不知道。」
+- Building one makes the speaker react and repeat the line, slower for 慢一点儿. Then you answer again.
+- This teaches the survival phrases from day one, in the moment they're needed. The missed word still goes to review.
+- In challenges (§6.1) the heart is still lost; the repair line replaces the confirm box.
+
+**4. Recasts for near misses.**
+
+- Outside challenges, an answer that is close (a word missing, order slightly off, a near synonym) isn't marked wrong. The NPC says it back correctly and carries on, as a person would. You build 「我要门票。」, and Ms. Chen says 「一个门票？好！」
+- The correct form flashes under their line so you can see the difference. It counts as a miss for catching that word.
+- Nonsense (as opposed to close) gets the confusion reaction from rule 1.
+
+**5. Every character has a verbal habit.** These are HSK 1 phrases they come back to, so each voice is recognisable:
+
+| Character | Habit | Example |
+| --- | --- | --- |
+| 老潘 Old Pan | Opens with "let me tell you" and never stops talking | 「我跟你说……」 |
+| 王奶奶 Grandma Wang | Calls you 孩子; worries that you've eaten | 「孩子，你吃饭了吗？」 |
+| 陈女士 Ms. Chen | Brisk; counts out loud while she works | 「一、二、三……好，下一个！」 |
+| 小谢 Xiao Xie | Always moving you on | 「走吧！走吧！」 |
+| 张老师 Teacher Zhang | Slow and approving | 「好，好。很好。」 |
+| 林姐 Sister Lin | Points things out | 「你看！你看！」 |
+| 乐乐 Lele | Answers a question with a question | 「你知道吗？你不知道！」 |
+| 孙师傅 Master Sun | A street vendor's call | 「来了！来了！」 |
+
+**6. A line has to earn its place.** No line exists only to fit a word into the scene. If a word needs a scene, the scene needs a reason, or the word moves to another beat (the coverage script in `HSK1-COVERAGE.md` balances this).
 
 ---
 
@@ -631,7 +685,7 @@ Each later city follows the Jinan pattern: 10 districts, 10 five-beat arcs, a pr
 | Voice per character | On | Falls back to the best Mandarin voice available |
 | Challenge timer | Off | "Brisk" adds 20 seconds per answer |
 | Text size | 100% | 100–150%; Chinese text never below 20 px |
-| Chinese font | Kaiti-style web font (see `LICENSING.md`) | Option for a plain sans font |
+| Chinese font | Noto Sans SC, everywhere (approved UI target; see `ART-AND-AUDIO.md`) | Subset to the game's characters |
 | Color | — | Never color-only meaning: right and wrong also show ✓ and ✗ and a sound |
 | Motion | Normal | Reduced motion: no shake, instant fades |
 | Controls | Keyboard and mouse | All drills keep 天天's keyboard shortcuts |
@@ -668,8 +722,8 @@ Each is a question in `OPEN-QUESTIONS.md`.
 
 ```
 $ node tools/check-zh.js CONCEPT.md
-128 player strings checked, 0 failed.
+152 player strings checked, 0 failed.
 
 $ node tools/check-zh.js CONCEPT.md drafts/jinan-arcs-3-10.md
-289 player strings checked, 0 failed.
+313 player strings checked, 0 failed.
 ```
