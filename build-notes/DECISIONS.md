@@ -14,3 +14,6 @@
 12. In-world sign text is HTML placed over the map (crisp, and hover/click works on it like all other Chinese) until a 12 px pixel CJK font is chosen.
 13. Taught words, names and particles get ids like `x:泉` so they share the save maps with HSK word ids.
 14. Dev panel key: the backtick (`). Ctrl/⌘+K opens the dictionary, as in 天天.
+15. Dev panel only loads with `?dev` in the address (user feedback: not wanted in normal play). The Playwright run uses `/?dev`.
+16. Saving is automatic and invisible. Export / import / reset live in Settings, not on the main screen.
+17. Hover tip stays up while the mouse crosses punctuation or gaps inside one line; a locked word says "Pinyin unlocks after you answer" instead of showing nothing.

@@ -6,7 +6,7 @@ const SKIP = 'input, textarea, select, option, script, style, svg, .hz, .hztip, 
 let locked = false;
 let tip, tipEl = null;
 
-export const setHzLock = (v) => { locked = !!v; if (locked) hideTip(); };
+export const setHzLock = (v) => { locked = !!v; hideTip(); };
 export const isHzLocked = () => locked;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -39,7 +39,7 @@ function showTip(el, text) {
   tip.style.left = Math.max(8, Math.min(window.innerWidth - tip.offsetWidth - 8, r.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
   tip.style.top = (r.top - tip.offsetHeight - 8 < 4 ? r.bottom + 8 : r.top - tip.offsetHeight - 8) + 'px';
 }
-export function hideTip() { if (tip) tip.hidden = true; tipEl = null; }
+export function hideTip() { if (tip) { tip.hidden = true; tip.classList.remove('lock'); } tipEl = null; }
 
 const blocked = (el) => locked && el.closest('.question');
 
@@ -48,9 +48,16 @@ export function initHz(root = document.body) {
 
   document.addEventListener('mouseover', (e) => {
     const el = e.target.closest && e.target.closest('.hz');
-    if (!el || blocked(el)) { if (tipEl) hideTip(); return; }
+    if (!el) {
+      // crossing punctuation or the gap between two words keeps the last tip, so a line reads smoothly
+      if (tipEl && e.target.closest && e.target.closest('.hzr') === tipEl.closest('.hzr')) return;
+      if (tipEl) hideTip(); return;
+    }
     if (el === tipEl) return;
-    tipEl = el; showTip(el, el.dataset.py || pinyinOf(el.textContent));
+    tipEl = el;
+    if (blocked(el)) { showTip(el, '🔒 Pinyin unlocks after you answer'); tip.classList.add('lock'); return; }
+    tip.classList.remove('lock');
+    showTip(el, el.dataset.py || pinyinOf(el.textContent));
   });
   document.addEventListener('click', (e) => {
     const el = e.target.closest && e.target.closest('.hz');

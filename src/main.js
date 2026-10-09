@@ -32,7 +32,8 @@ function rerenderAll() { if (demo) demo.remove(); demo = mountShellDemo({ store,
 
 initHz(document.getElementById('overlay'));
 initDictionary(store);
-initDevPanel({ store, toast, onChange: rerenderAll });
+// dev panel only with ?dev in the address (used for testing, never shown in normal play)
+if (new URLSearchParams(location.search).has('dev')) initDevPanel({ store, toast, onChange: rerenderAll });
 rerenderAll();
 
 window.__game = createGame('phaser', {

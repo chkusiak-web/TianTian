@@ -17,11 +17,13 @@ button { font: inherit; cursor: pointer; }
 kbd { font: inherit; font-size: .8em; border: 1px solid var(--stone3); border-bottom-width: 2px; border-radius: 3px; padding: 0 .35em; background: var(--stone1); }
 
 /* chinese text */
-.hz.w { cursor: help; border-bottom: 1px dotted transparent; }
+.hz.w { cursor: help; border-bottom: 1px dotted transparent; padding: .08em 0; }
 .hz.w:hover { border-bottom-color: var(--earth3); background: rgba(232, 185, 58, .25); }
 .zh { font-size: var(--zh); }
 .hztip { position: fixed; z-index: 100; background: var(--line); color: var(--stone1); padding: .25em .6em; border-radius: 3px; font-size: var(--ui); pointer-events: none; white-space: nowrap; }
 .question.locked .hz.w { cursor: default; }
+.question.locked .hz.w:hover { background: none; }
+.hztip.lock { background: var(--stone3); }
 
 /* pixel panels */
 .panel { background: var(--stone1); border: 2px solid var(--earth3); box-shadow: 0 0 0 2px var(--stone2) inset, 3px 3px 0 var(--line); padding: 1.1em 1.3em; }
