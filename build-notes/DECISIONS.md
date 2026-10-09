@@ -23,3 +23,6 @@
 21. The corner display is a slim bar on the bottom wall (place + next step, 词典, Settings) so it never covers the map's people or signs.
 22. Portraits: Grandma Wang and Teacher Zhang use 天天's illustrated faces as placeholders (allowed by the brief); everyone else gets a pixel bust cut from their sprite.
 23. For now everyone is visible from the start. Showing Lele only once the story reaches Gate 4 comes with the beats (checkpoint 4).
+24. Baotu word sets are bigger than §2.2's 5–10 (user choice A): the §5.1 lines and notebook page 1 need 87 words. A 12-word core set is taught in the opening taxi ride, then 11–14 per beat. All §5.1 lines and page 1 stay as written. Plan: `content/baotu-words.json`, made by `node tools/assign-words.js --write`.
+25. 十 and 四 are both taught at the ticket window (四十块), right before the fish-pool beat tests 四 vs 十 by ear.
+26. 白 is taught as "white" in the Hook (the lexicon also lists 白 as Dr. Bai's surname).
