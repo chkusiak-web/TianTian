@@ -4,6 +4,7 @@
 //  - a scene only uses words taught in this session or earlier (plus names, particles, the fixed expression)
 //  - the notebook page is fully readable once the arc's words are caught
 //  - text per beat is 40–150 characters (warning only)
+//  - a session teaches at most 8 new words (CONCEPT §2.1; units are split into `parts` to stay under it)
 import { makeSplitter, wordsOf, HAN } from '../../src/core/split.js';
 import { lexicon } from './hsk.js';
 import { LX } from './zhcheck.js';
@@ -30,11 +31,19 @@ function sceneText(use) {
 export function checkBeatRules(data, name, warn = (m) => console.log('  ! ' + m)) {
   if (!Array.isArray(data.beats)) return [];
   const problems = [];
-  const sessions = [data.opening, ...data.beats].filter(Boolean);
+  // a unit with `parts` is played as several sessions; its words must be exactly its parts' words
+  for (const u of [data.opening, ...data.beats].filter((x) => x && x.parts)) {
+    const inParts = u.parts.flatMap((x) => x.words);
+    const missing = u.words.filter((w) => !inParts.includes(w)), extra = inParts.filter((w) => !u.words.includes(w));
+    if (missing.length || extra.length) problems.push(`${name}:${u.id} parts don't match its words (missing ${missing.join(' ') || '-'}, extra ${extra.join(' ') || '-'})`);
+    if (new Set(inParts).size !== inParts.length) problems.push(`${name}:${u.id} a word is taught in two parts`);
+  }
+  const sessions = [data.opening, ...data.beats].filter(Boolean).flatMap((u) => u.parts || [u]);
   const known = new Set();
   for (const b of sessions) {
     for (const w of b.words) known.add(w);
     if (!b.use) continue;
+    if (b.words.length > 8) problems.push(`${name}:${b.id} teaches ${b.words.length} new words (at most 8 per session)`);
     const { all, answers } = sceneText(b.use);
     const ansToks = answers.flatMap(toks), allToks = all.flatMap(toks);
     for (const w of b.words) {

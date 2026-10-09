@@ -28,7 +28,13 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   expect((await state(page)).progress.openingStep).toBe('learn');
   await expect(page.locator('.sheet .steps li.now')).toHaveText(/Learn/);
 
-  // play the arrival to the end: conversation in the taxi, then the notebook shows two lines in focus
+  // the arrival is two sessions: the taxi (then 「我是老周。」 is readable), then the gate (「七十三。」 too)
+  await autoplay(page, () => !!document.querySelector('.nbclose'));
+  await expect(page.locator('.page .nline.clear')).toHaveCount(1);
+  await expect(page.locator('#arrival .taxi')).toBeVisible();
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  await expect(page.locator('.storycard')).toContainText('old town');
+  expect((await state(page)).progress.part).toBe(1);
   await autoplay(page, () => !!document.querySelector('.nbclose'));
   await expect(page.locator('.page .nline.clear')).toHaveCount(2);
   await autoplay(page, () => window.__store.state.progress.stage === 'district' && !document.querySelector('.storycard'));
@@ -38,7 +44,8 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   await expect(page.locator('.hudplace')).toContainText('趵突泉');
   const openingWords = await page.evaluate(() => window.__content.opening.words.length);
   expect(Object.keys(s.words).length).toBe(openingWords);           // every opening word caught, nothing else
-  expect(s.stats.conversations).toBe(1);
+  expect(s.stats.conversations).toBe(2);
+  expect(s.progress.part).toBe(0);
 
   // open the spring on the board and click Grandma Wang to play the Hook
   await page.click('.spot.k-place[data-id="spring"]');
@@ -53,8 +60,8 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
   s = await state(page);
   const hookWords = await page.evaluate(() => window.__content.beats[0].words.length);
   expect(Object.keys(s.words).length).toBe(openingWords + hookWords);
-  expect(s.stats.conversations).toBe(2);
-  expect(s.stats.cleanConversations).toBe(2);
+  expect(s.stats.conversations).toBe(4);
+  expect(s.stats.cleanConversations).toBe(4);
   await expect(page.locator('#hint')).toContainText('tai chi');
 
   // the notebook opens from the bottom bar with three lines readable

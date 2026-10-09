@@ -37,4 +37,15 @@ describe('§6.10 beat rules', () => {
     const d = base(); d.opening.use.steps.push({ npc: 'x', zh: '我要杯子。' });
     expect(checkBeatRules(d, 't', quiet).join()).toMatch(/uses 要/);
   });
+  it('flags a session with more than 8 new words', () => {
+    const d = base(); d.opening.words.push('一', '二', '三', '四', '五', '六', '七');
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/teaches 9 new words/);
+  });
+  it('checks each part of a split unit, and that the parts cover its words', () => {
+    const d = base(); const o = d.opening;
+    d.opening = { id: 'o', words: ['你好', '我'], parts: [{ id: 'p1', words: ['你好'], use: { steps: o.use.steps.slice(0, 2) } }, { id: 'p2', words: ['我'], use: { steps: o.use.steps.slice(2) } }] };
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/p1 uses 我|p2 new word 我 appears/);
+    d.opening.parts[1].words = [];
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/parts don't match its words \(missing 我/);
+  });
 });

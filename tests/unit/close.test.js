@@ -27,7 +27,7 @@ import { splitWords } from '../../src/lexicon.js';
 describe('Baotu build prompts', () => {
   it('every accepted answer can be built from the tiles on offer', () => {
     const words = (s) => splitWords(s).filter((p) => p.w).map((p) => p.t);
-    for (const s of [content.opening, ...content.beats].flatMap((b) => (b.use ? b.use.steps : []))) {
+    for (const s of [content.opening, ...content.beats].flatMap((b) => b.parts || [b]).flatMap((b) => (b.use ? b.use.steps : []))) {
       if (!s.build) continue;
       const pool = [...words(s.answer), ...(s.extra || [])];
       for (const a of s.accept || []) {

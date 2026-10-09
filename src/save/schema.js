@@ -17,6 +17,7 @@ export const defaultSave = () => ({
     openingStep: 'refresh',  // step of the opening session
     beat: 0,                 // index of the next beat to play (0-5); 6 = all beats done
     beatStep: 'refresh',     // refresh | learn | use | notebook
+    part: 0,                 // which session of the opening or current beat (units with `parts`)
     clueMistake: false,      // misheard 四 as 十 in beat 4 (challenge starts with 4 hearts)
     challengeWon: false,
     notebookClear: {},       // line index -> true

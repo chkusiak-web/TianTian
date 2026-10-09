@@ -67,6 +67,7 @@ export function initDevPanel({ store, toast, onChange }) {
 
   function jump(beat, step) {
     const s = S();
+    s.progress.part = 0;
     if (beat < 0) { s.progress.stage = 'opening'; s.progress.openingStep = step; }
     else { s.progress.stage = 'district'; s.progress.beat = beat; s.progress.beatStep = step; s.progress.openingStep = 'done'; }
     // the opening and earlier beats count as played: their words become caught

@@ -12,18 +12,23 @@ import { esc } from './quiz-ui.js';
 const ORDER = ['refresh', 'learn', 'use', 'notebook'];
 const MAX_REFRESH = 15;
 
-// words of the opening and every beat up to and including `upto` (an index into [opening, ...beats])
-export function knownWordObjs(content, upto) {
-  return [content.opening, ...content.beats].slice(0, upto + 1).flatMap((s) => s.words).map(wordObj).filter(Boolean);
+// A unit (the opening or a beat) is played as one or more sessions: its `parts`, or the unit itself.
+export const partsOf = (unit) => (unit && unit.parts) || [unit];
+// every session in order: [{ unit, index, part, def }], index 0 = the opening, i = beats[i - 1]
+export const allSessions = (content) => [content.opening, ...content.beats].flatMap((unit, index) => partsOf(unit).map((def, part) => ({ unit, index, part, def })));
+
+// words of every session up to and including session `part` of unit `upto` (an index into [opening, ...beats])
+export function knownWordObjs(content, upto, part = Infinity) {
+  return allSessions(content).filter((x) => x.index < upto || (x.index === upto && x.part <= part)).flatMap((x) => x.def.words || []).map(wordObj).filter(Boolean);
 }
 
-export async function playSession({ content, index, store, cast, portraitFor, onStep, onAt }) {
+export async function playSession({ content, index, part = 0, store, cast, portraitFor, onStep, onAt }) {
   const S = store.state;
-  const def = index === 0 ? content.opening : content.beats[index - 1];
+  const def = partsOf(index === 0 ? content.opening : content.beats[index - 1])[part];
   const getStep = () => (index === 0 ? S.progress.openingStep : S.progress.beatStep) || 'refresh';
   const setStep = (k) => { if (index === 0) S.progress.openingStep = k; else S.progress.beatStep = k; store.save(); onStep && onStep(k); };
   const words = def.words.map(wordObj).filter(Boolean);
-  const pool = knownWordObjs(content, index);
+  const pool = knownWordObjs(content, index, part);
   const silent = () => { const m = S.settings.silent; return !!(m && m.on && m.date === todayKey()); };
   const before = clearLines(S, content.notebook.lines);
 

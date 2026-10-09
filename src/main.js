@@ -18,7 +18,7 @@ import { todayKey } from './core/clock.js';
 import places from '../content/baotu-places.js';
 import content from '../content/baotu.js';
 import castData from '../content/cast.js';
-import { playSession, storyCard } from './session/runner.js';
+import { playSession, storyCard, partsOf } from './session/runner.js';
 import { renderPage, wirePage } from './session/notebook.js';
 import { openModal, closeModal } from './ui/modal.js';
 import { preloadStrokes } from './session/quiz-ui.js';
@@ -66,13 +66,14 @@ const P = () => store.state.progress;
 
 function refresh() {
   const p = P();
-  if (p.stage === 'opening' && !arrival.on) arrival.show(p.openingStep === 'notebook' ? 'home' : 'station');
+  if (p.stage === 'opening' && !arrival.on) arrival.show(p.part > 0 ? 'road' : 'station');
   if (p.stage !== 'opening' && arrival.on) arrival.hide();
-  if (p.stage === 'opening') { hud.setHint('arrive in Jinan.', busy ? null : p.openingStep && p.openingStep !== 'refresh' ? 'Continue' : 'Begin'); if (scene) scene.setBeat(-1); return; }
+  if (p.stage === 'opening') { hud.setHint('arrive in Jinan.', busy ? null : p.part > 0 || (p.openingStep && p.openingStep !== 'refresh') ? 'Continue' : 'Begin'); if (scene) scene.setBeat(-1); return; }
   const place = places.beatPlaces[p.beat];
   const def = content.beats[p.beat];
   let hint = place ? place.hint : 'Baotu\'s beats are done. The gate quiz comes in checkpoint 5.';
-  if (place && def && def.use) hint += p.beatStep === 'use' ? ' (continue the conversation)' : p.beatStep === 'notebook' ? ' (read the notebook)' : '';
+  const parts = def ? partsOf(def) : [];
+  if (place && parts[0] && parts[0].use) hint += p.beatStep === 'use' ? ' (continue the conversation)' : p.beatStep === 'notebook' ? ' (read the notebook)' : p.part > 0 ? ` (part ${p.part + 1} of ${parts.length})` : '';
   hud.setHint(hint, null);
   if (scene) scene.setBeat(p.beat);
 }
@@ -83,12 +84,26 @@ function today() {
   if (P().stage === 'opening') return startOpening();
 }
 
+// play a unit's sessions (its parts) from the saved one on; a story card leads into each later part
+async function playParts(index, unit, stepKey, extra = {}) {
+  const p = P(), parts = partsOf(unit);
+  if (!(p.part >= 0 && p.part < parts.length)) p.part = 0;
+  for (;;) {
+    const def = parts[p.part];
+    if (p.part > 0 && (p[stepKey] || 'refresh') === 'refresh' && def.intro) await storyCard(def.intro, 'Continue');
+    const r = await playSession({ content, index, part: p.part, store, cast: castData.people, portraitFor, onStep: refresh, ...extra });
+    if (r !== 'done') return r;
+    if (p.part + 1 >= parts.length) { p.part = 0; store.save(); return 'done'; }
+    p.part++; p[stepKey] = 'refresh'; store.save(); refresh();
+  }
+}
+
 async function startOpening() {
   if (busy) return;
   busy = true; hud.clearHover(); refresh();
   try {
-    if (!P().openingStep || P().openingStep === 'refresh') await storyCard('You have come to Jinan to settle the estate of your great-uncle, Old Zhou. He lived on Qushuiting Street for fifty years. You don\'t speak Chinese yet.', 'Begin');
-    const r = await playSession({ content, index: 0, store, cast: castData.people, portraitFor, onStep: refresh, onAt: (stop) => arrival.at(stop) });
+    if (!P().part && (!P().openingStep || P().openingStep === 'refresh')) await storyCard('You have come to Jinan to settle the estate of your great-uncle, Old Zhou. He lived on Qushuiting Street for fifty years. You don\'t speak Chinese yet.', 'Begin');
+    const r = await playParts(0, content.opening, 'openingStep', { onAt: (stop) => arrival.at(stop) });
     if (r === 'done') {
       const p = P(); p.stage = 'district'; p.openingStep = 'done'; p.beat = 0; p.beatStep = 'refresh'; store.save();
       await storyCard('Next morning, you walk to Baotu Spring.', 'Go');
@@ -99,11 +114,11 @@ function maybeStartOpening() { if (P().stage === 'opening' && scene) startOpenin
 
 async function startBeat() {
   const p = P(), def = content.beats[p.beat];
-  if (!def.use) { toast('This scene comes in checkpoint 4.'); return; }
+  if (!partsOf(def)[0].use) { toast('This scene comes in checkpoint 4.'); return; }
   busy = true; hud.clearHover();
   try {
-    const r = await playSession({ content, index: p.beat + 1, store, cast: castData.people, portraitFor, onStep: refresh });
-    if (r === 'done') { p.beat++; p.beatStep = 'refresh'; store.save(); toast('Beat complete'); }
+    const r = await playParts(p.beat + 1, def, 'beatStep');
+    if (r === 'done') { p.beat++; p.beatStep = 'refresh'; p.part = 0; store.save(); toast('Beat complete'); }
   } finally { busy = false; refresh(); }
 }
 
