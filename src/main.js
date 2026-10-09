@@ -1,9 +1,7 @@
-import '@fontsource/noto-sans-sc/400.css';
-import '@fontsource/noto-sans-sc/500.css';
-import '@fontsource/noto-sans-sc/700.css';
-import '@fontsource/nunito-sans/400.css';
-import '@fontsource/nunito-sans/600.css';
-import '@fontsource/nunito-sans/800.css';
+// Noto Sans SC is subset to the game's characters (src/fonts, tools/subset-fonts.py); Nunito Sans ships Latin only
+import '@fontsource/nunito-sans/latin-400.css';
+import '@fontsource/nunito-sans/latin-600.css';
+import '@fontsource/nunito-sans/latin-800.css';
 import { createAdapter } from './save/adapter.js';
 import { createStore } from './save/store.js';
 import { configureAudio } from './audio/index.js';

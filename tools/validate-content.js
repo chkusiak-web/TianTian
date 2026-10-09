@@ -15,6 +15,13 @@ for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.js') && !SKIP.has
   const r = checkContent(data, f); total += r.count; problems.push(...r.problems);
   problems.push(...checkBeatRules(data, f));
 }
+// every Chinese character in the game must be in the subset font (src/fonts), or it shows in a fallback font
+const root = path.join(dir, '..');
+const covered = new Set(fs.readFileSync(path.join(root, 'src/fonts/zh-chars.txt'), 'utf8'));
+const sources = [...fs.readdirSync(dir).map((f) => path.join(dir, f)), ...fs.readdirSync(path.join(root, 'src'), { recursive: true }).filter((f) => f.endsWith('.js') && !/strokes|hanzi-writer/.test(f)).map((f) => path.join(root, 'src', f))];
+const missing = new Set();
+for (const f of sources) for (const c of fs.readFileSync(f, 'utf8')) { const n = c.codePointAt(0); if (n > 0x3400 && n < 0x9fff && !covered.has(c)) missing.add(c); }
+if (missing.size) problems.push(`Not in the subset font: ${[...missing].join('')}. Run: python3 tools/subset-fonts.py`);
 problems.forEach((p) => console.log('✗ ' + p));
 console.log(`\n${total} player strings checked, ${problems.length} problem(s).`);
 process.exit(problems.length ? 1 : 0);
