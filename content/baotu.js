@@ -12,6 +12,7 @@
 //                                                     (src/session/close.js): a repeated word said once, 吧/啊/呀/呢,
 //                                                     and words listed in `optional` may be left out or added.
 //   { note }                                          English narration between lines
+//   face: 'happy' | 'worried' | 'confused'   the speaker's portrait expression (default neutral)
 //   sign: true      the line is a park sign, drawn as one
 //   { duel: { hearts, loseOn?, win?, retreat, prompts: [prompt steps] } }   a conversation challenge (§6.1, src/session/use.js)
 //   on a prompt: flag: 'name'   a miss sets progress[name] (e.g. clueMistake);  onMiss: [steps]  played only after a miss
@@ -49,7 +50,7 @@ export default {
             { npc: 'pan', zh: '是！我是老潘！', en: 'Yes! I\'m Old Pan!' },
             { ask: 'listen', npc: 'pan', zh: '你是老周吗？', en: 'Are you Old Zhou?', label: 'Listening · answer Old Pan', q: 'Old Pan asks you something. Answer him.', options: ['是。', '不是。'], answer: '不是。' },
             { build: true, npc: 'pan', label: 'Speaking · set him straight', q: 'Say: I\'m not Old Zhou.', answer: '我不是老周。', extra: ['你', '吗'] },
-            { npc: 'pan', zh: '哦，你不是老周。', en: 'Oh, you\'re not Old Zhou.' },
+            { npc: 'pan', face: 'confused', zh: '哦，你不是老周。', en: 'Oh, you\'re not Old Zhou.' },
             { at: 'road', note: 'The taxi turns toward the old town. Old Pan goes quiet, then starts counting.' }
           ]
         }
@@ -98,10 +99,10 @@ export default {
             place: 'By the railing at Baotu Spring, early morning',
             steps: [
               { ask: 'listen', npc: 'wang', zh: '孩子，你好！', en: 'Hello, child!', label: 'Listening · what does she call you?', q: 'What does she call you?', options: ['孩子', '杯子', '本子'], answer: '孩子' },
-              { npc: 'wang', zh: '我是王奶奶。我的杯子没有了！', en: 'I\'m Grandma Wang. My cup is gone!' },
+              { npc: 'wang', face: 'worried', zh: '我是王奶奶。我的杯子没有了！', en: 'I\'m Grandma Wang. My cup is gone!' },
               { note: 'She means her thermos. Here, a thermos is just a 杯子, a cup.' },
               { ask: 'listen', npc: 'wang', zh: '我的杯子没有了！', en: 'My cup is gone!', label: 'Listening · what did Grandma lose?', q: 'What did Grandma Wang lose?', options: ['杯子', '本子', '孩子'], answer: '杯子' },
-              { ask: 'listen', npc: 'wang', zh: '没有了！没有了！', en: 'Gone! Gone!', label: 'Listening · what happened?', q: 'What happened to it?', options: ['没有了', '是我的', '是白的'], answer: '没有了' },
+              { ask: 'listen', npc: 'wang', face: 'worried', zh: '没有了！没有了！', en: 'Gone! Gone!', label: 'Listening · what happened?', q: 'What happened to it?', options: ['没有了', '是我的', '是白的'], answer: '没有了' },
               { npc: 'wang', zh: '是一个白杯子。', en: 'It\'s a white cup.' },
               { ask: 'read', npc: 'wang', zh: '是一个白杯子。', en: 'It\'s a white cup.', label: 'Reading · which cup?', q: 'Which one is hers?', options: ['一个白杯子', '一个白本子', '三个白杯子'], answer: '一个白杯子' },
               { build: true, npc: 'wang', label: 'Speaking · comfort her', q: 'Say: a white cup? I don\'t have it.', answer: '一个白杯子？我没有。', extra: ['你', '是'] },
@@ -125,7 +126,7 @@ export default {
               { npc: 'wang', zh: '孩子，你先。', en: 'Child, you first.' },
               { note: 'She steps back from the railing so you can look first.' },
               { build: true, npc: 'wang', label: 'Speaking · be polite', q: 'Be polite: "No, no, you first!"', answer: '不，不，你先！', extra: ['我', '是'] },
-              { npc: 'wang', zh: '哈哈！谢谢你，孩子！', en: 'Haha! Thank you, child!' },
+              { npc: 'wang', face: 'happy', zh: '哈哈！谢谢你，孩子！', en: 'Haha! Thank you, child!' },
               { note: 'Quest: find Grandma Wang\'s white cup. Someone at the tai chi square might have seen it.' }
             ]
           }
@@ -156,7 +157,7 @@ export default {
               { npc: 'lin', zh: '我叫林姐。你是哪国人？', en: 'I\'m Sister Lin. What country are you from?' },
               { ask: 'listen', npc: 'lin', zh: '你是哪国人？', en: 'What country are you from?', label: 'Listening · what does she ask now?', q: 'What does she ask this time?', options: ['哪国人', '什么名字', '什么杯子'], answer: '哪国人' },
               { build: true, npc: 'lin', label: 'Speaking · where you\'re from', q: 'Tell her you\'re not Chinese.', answer: '我不是中国人。', extra: ['你', '吗'] },
-              { npc: 'lin', zh: '哦，你不是中国人！你好，你好！', en: 'Oh, you\'re not Chinese! Hello, hello!' },
+              { npc: 'lin', face: 'happy', zh: '哦，你不是中国人！你好，你好！', en: 'Oh, you\'re not Chinese! Hello, hello!' },
               { build: true, npc: 'lin', label: 'Speaking · who you are', q: 'You have no Chinese name yet. Say: I\'m Old Zhou\'s child.', answer: '我是老周的孩子。', extra: ['叫', '名字'] },
               { note: 'Teacher Zhang finishes the last move and comes over to talk.' }
             ]
@@ -213,7 +214,7 @@ export default {
               { npc: 'chen', zh: '谢谢！这是你的门票。', en: 'Thank you! Here\'s your ticket.' },
               { ask: 'read', npc: 'chen', zh: '门票 · 四十块 · 一号门', en: 'Ticket · 40 yuan · Gate 1', label: 'Reading · your ticket', q: 'Which gate does your ticket say?', options: ['一号门', '四号门', '七号门'], answer: '一号门' },
               { build: true, npc: 'chen', label: 'Speaking · ask about the cup', q: 'Ask her: did you see a white cup?', answer: '你看见一个白杯子吗？', accept: ['你看见白杯子吗？'], extra: ['我', '门票'] },
-              { npc: 'chen', zh: '一个白杯子？这是我的本子。', en: 'A white cup? This is my notebook.' },
+              { npc: 'chen', face: 'confused', zh: '一个白杯子？这是我的本子。', en: 'A white cup? This is my notebook.' },
               { note: 'She turns the ledger around: everything lost and found at Baotu, by time and gate.' }
             ]
           }
@@ -262,7 +263,7 @@ export default {
               { ask: 'listen', npc: 'kid', zh: '他去了四号门！', en: 'He went to Gate 4!', label: 'Tones · 四 or 十?', q: 'Which gate did he go to?', options: ['四号门', '十号门'], answer: '四号门', flag: 'clueMistake',
                 onMiss: [
                   { note: 'You run to the far side of the park. There is no Gate 10 anywhere. You walk back, out of breath.' },
-                  { npc: 'xie', zh: '这儿没有十号门。是四号门！', en: 'There\'s no Gate 10 here. It\'s Gate 4!' }
+                  { npc: 'xie', face: 'confused', zh: '这儿没有十号门。是四号门！', en: 'There\'s no Gate 10 here. It\'s Gate 4!' }
                 ] },
               { npc: 'xie', zh: '你好！我是小谢。他天天都来这儿。', en: 'Hi! I\'m Xiao Xie. He comes here every day.' },
               { ask: 'listen', npc: 'xie', zh: '他天天都来这儿。', en: 'He comes here every day.', label: 'Listening · how often?', q: 'How often does the boy come here?', options: ['天天都来', '天天都去', '天天都喝水'], answer: '天天都来' },
@@ -320,7 +321,7 @@ export default {
               { note: 'At Gate 4, a boy in a red cap hugs a white thermos. He sees you and starts to walk off.' },
               { ask: 'listen', npc: 'lele', zh: '对不起，我先走了！', en: 'Sorry, I\'m off!', label: 'Listening · what is he doing?', q: 'What is the boy doing?', options: ['我先走了', '我先回答', '我先喝水'], answer: '我先走了' },
               { build: true, npc: 'lele', label: 'Speaking · stop him', q: 'Say: you can\'t go!', answer: '你不能走！', extra: ['我', '给'] },
-              { npc: 'lele', zh: '我是乐乐。这是我的杯子！', en: 'I\'m Lele. This is my cup!' },
+              { npc: 'lele', face: 'worried', zh: '我是乐乐。这是我的杯子！', en: 'I\'m Lele. This is my cup!' },
               { build: true, npc: 'lele', label: 'Speaking · set it straight', q: 'Say: sorry! It\'s Grandma Wang\'s cup.', answer: '对不起！是王奶奶的杯子。', accept: ['对不起，是王奶奶的杯子。'], extra: ['我', '有'] },
               { ask: 'listen', npc: 'lele', zh: '我有杯子，你没有！', en: 'I have the cup, you don\'t!', label: 'Listening · what does he say?', q: 'What does Lele say?', options: ['我有杯子，你没有', '我没有杯子，你有', '我有杯子，你也有'], answer: '我有杯子，你没有' },
               { ask: 'listen', npc: 'lele', zh: '你也想要杯子？', en: 'You want the cup too?', label: 'Listening · what does he ask?', q: 'What does Lele ask?', options: ['你也想要杯子？', '你也有杯子？', '你也是孩子？'], answer: '你也想要杯子？' },
@@ -355,7 +356,7 @@ export default {
                   { build: true, npc: 'lele', label: 'Speaking · tell him', q: 'Tell him: you\'re Ms. Chen\'s child.', answer: '你是陈女士的孩子。', extra: ['谁', '我'] }
                 ]
               } },
-              { npc: 'lele', zh: '你有面子！给你杯子。', en: 'You\'ve got face! Here\'s the cup.' },
+              { npc: 'lele', face: 'happy', zh: '你有面子！给你杯子。', en: 'You\'ve got face! Here\'s the cup.' },
               { ask: 'listen', npc: 'lele', zh: '你有面子！', en: 'You\'ve got face!', label: 'Listening · what do you have?', q: 'What does Lele say you have?', options: ['面子', '名字', '杯子'], answer: '面子' },
               { note: 'Lele hands over the white thermos. Grandma Wang is waiting by the spring.' }
             ]
