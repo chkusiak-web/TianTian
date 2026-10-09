@@ -47,7 +47,7 @@ export async function playSession({ content, index, part = 0, store, cast, portr
     }
     if (getStep() === 'use') {
       panel.setStep('use'); panel.hide();
-      const r = await runConversation({ use: def.use, store, cast, portraitFor, sessionId: def.id, onAt });
+      const r = await runConversation({ use: def.use, store, cast, portraitFor, sessionId: def.id, onAt, known: pool.map((w) => w.h) });
       panel.show();
       S.stats.conversations++;
       if (!r.misses && !r.hints) S.stats.cleanConversations++;

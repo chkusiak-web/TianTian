@@ -14,11 +14,21 @@ describe('close-enough answers', () => {
     expect(judgeBuild(w('你 先 吧'), [w('你 先')])).toBe('close');
     expect(judgeBuild(w('这 是 本子'), [w('这 是 我的 本子')], { optional: ['我的'] })).toBe('close');
   });
-  it('wrong order, a missing word or a different word is wrong', () => {
-    expect(judgeBuild(w('先 你 不'), [w('不 不 你 先')])).toBe('wrong');
-    expect(judgeBuild(w('不 先'), [w('不 不 你 先')])).toBe('wrong');
+  it('near (recast, §6.11 rule 4): wrong order, or one word missing or extra', () => {
+    expect(judgeBuild(w('先 你 不'), [w('不 不 你 先')])).toBe('near');
+    expect(judgeBuild(w('我 要 门票'), [w('我 要 一 个 门票')])).toBe('wrong');
+    expect(judgeBuild(w('我 要 个 门票'), [w('我 要 一 个 门票')])).toBe('near');
+    expect(judgeBuild(w('我 是 是 游客'), [w('我 是 游客')])).toBe('close');
+    expect(judgeBuild(w('我 是 很 游客'), [w('我 是 游客')])).toBe('near');
+  });
+  it('a missing or extra negation is wrong, not near', () => {
+    expect(judgeBuild(w('我 知道'), [w('我 不 知道')])).toBe('wrong');
+    expect(judgeBuild(w('我 不 是 游客'), [w('我 是 游客')])).toBe('wrong');
+  });
+  it('a different word, or two words off, is wrong', () => {
     expect(judgeBuild(w('不 我 先'), [w('不 不 你 先')])).toBe('wrong');
     expect(judgeBuild(w('吧'), [w('你 先')])).toBe('wrong');
+    expect(judgeBuild(w('先'), [w('不 你 先')])).toBe('wrong');
   });
 });
 

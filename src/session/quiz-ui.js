@@ -47,7 +47,8 @@ export function confirmBox(area, ok, answerHtml, glossText, { close = false } = 
 }
 
 // Multiple choice. options: [{ html, value, zh }] — zh options are Chinese and hover-locked.
-export function askChoice(area, { options, answer, answerHtml, glossText }) {
+// soft: a wrong pick shows no ✗ box; the caller decides what happens next (a repair line, §6.11 rule 3)
+export function askChoice(area, { options, answer, answerHtml, glossText, soft = false }) {
   return new Promise((resolve) => {
     const wrap = document.createElement('div');
     wrap.className = 'choices answers';
@@ -60,7 +61,8 @@ export function askChoice(area, { options, answer, answerHtml, glossText }) {
       const o = options[i], ok = o.value === answer;
       wrap.querySelectorAll('.choice').forEach((b, j) => { b.disabled = true; if (options[j].value === answer) b.classList.add('right'); else if (j === i) b.classList.add('wrong'); });
       setHzLock(false);
-      await confirmBox(area, ok, answerHtml || esc(answer), glossText);
+      if (soft && !ok) await new Promise((r) => setTimeout(r, 500));
+      else await confirmBox(area, ok, answerHtml || esc(answer), glossText);
       resolve({ ok, value: o.value });
     };
     wrap.querySelectorAll('.choice').forEach((b) => (b.onclick = () => pick(+b.dataset.i)));
@@ -73,7 +75,9 @@ export const TILE_KEYS = [...'1234567890qwertyuiop'];
 
 // Build a sentence from word tiles (CONCEPT §6.9). Punctuation is added back for display; only the words count.
 // `accept`: other answers that are also right (e.g. 谢谢！ for "thank him" when the model answer is 谢谢你！).
-export function askBuild(area, { answer, accept = [], optional = [], extra = [], rng = Math.random, allowHint = true }) {
+// soft: only an exact or close answer is judged here. A near or wrong one resolves at once (no ✗ box), so the
+// conversation can recast it or answer 「啊？什么？」 (§6.11 rules 1 and 4). Without soft, near counts as wrong.
+export function askBuild(area, { answer, accept = [], optional = [], extra = [], rng = Math.random, allowHint = true, soft = false }) {
   return new Promise((resolve) => {
     const target = splitWords(answer).filter((p) => p.w).map((p) => p.t);
     const tiles = shuffle([...target, ...extra].map((t, i) => ({ t, i })), rng);
@@ -96,12 +100,14 @@ export function askBuild(area, { answer, accept = [], optional = [], extra = [],
       if (done || !placed.length) return; done = true; setKeys(null);
       const words = (s) => splitWords(s).filter((p) => p.w).map((p) => p.t);
       const verdict = judgeBuild(placed.map((p) => p.t), [answer, ...accept].map(words), { optional });
-      const ok = verdict !== 'wrong';
+      const ok = verdict === 'exact' || verdict === 'close';
       wrap.querySelectorAll('button').forEach((b) => (b.disabled = true));
-      wrap.classList.add('checked', ok ? 'ok' : 'no');   // your answer stays readable, marked right or wrong
       setHzLock(false);
+      const said = placed.map((p) => p.t).join('');
+      if (soft && !ok) { wrap.classList.add('checked', 'soft'); resolve({ ok, verdict, hint: hinted, said }); return; }
+      wrap.classList.add('checked', ok ? 'ok' : 'no');   // your answer stays readable, marked right or wrong
       await confirmBox(area, ok, esc(answer), target.map(pinyinOf).join(' '), { close: verdict === 'close' });
-      resolve({ ok, close: verdict === 'close', hint: hinted, said: placed.map((p) => p.t).join('') });
+      resolve({ ok, verdict, close: verdict === 'close', hint: hinted, said });
     };
     wrap.querySelector('.bundo').onclick = () => { placed.pop(); draw(); };
     wrap.querySelector('.bcheck').onclick = check;

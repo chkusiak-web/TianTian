@@ -257,3 +257,9 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 .hearts .h { font-style: normal; color: var(--rule); }
 .hearts .h.on { color: var(--red); }
 .dbody > .hearts { align-self: flex-end; }
+
+/* recast (§6.11 rule 4): the correct form under the NPC's line */
+.dialogue .dline .recast { font-size: .62em; margin-top: .35em; color: var(--ink-2, #4a5a54); }
+.dialogue .dline .recast .mark { color: var(--gold, #E8B04A); font-weight: 800; margin-right: .25em; }
+.dialogue .dline .recast .note { margin-left: .6em; }
+.build.checked.soft .slots { opacity: .55; }
