@@ -3,7 +3,10 @@ import { lookup } from '../lexicon.js';
 import { learnWord, grade, dueIds } from '../core/srs.js';
 import { setOffsetDays, getOffsetDays, now, DAY } from '../core/clock.js';
 import { downloadSave, parseImport, readFileText } from '../save/transfer.js';
-import { BEATS } from '../beats.js';
+import content from '../../content/baotu.js';
+import { catchWord } from '../core/words.js';
+
+const SESSIONS = [content.opening, ...content.beats];
 
 export function initDevPanel({ store, toast, onChange }) {
   let panel = null;
@@ -37,10 +40,10 @@ export function initDevPanel({ store, toast, onChange }) {
     const s = S(), p = s.progress;
     panel.innerHTML = `<h2>Dev panel <span class="note" style="color:#aaa">( \` closes )</span></h2>
       <h4>Jump to a beat</h4>
-      <div class="row"><select id="dvbeat">${BEATS.map((b, i) => `<option value="${i}" ${p.beat === i ? 'selected' : ''}>${i + 1}. ${b.title}</option>`).join('')}<option value="6" ${p.beat === 6 ? 'selected' : ''}>All beats done</option></select>
+      <div class="row"><select id="dvbeat"><option value="-1" ${p.stage === 'opening' ? 'selected' : ''}>0. Opening</option>${content.beats.map((b, i) => `<option value="${i}" ${p.stage !== 'opening' && p.beat === i ? 'selected' : ''}>${i + 1}. ${b.title}</option>`).join('')}<option value="6" ${p.beat === 6 ? 'selected' : ''}>All beats done</option></select>
         <select id="dvstep">${['refresh', 'learn', 'use', 'notebook'].map((x) => `<option ${p.beatStep === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
         <button class="btn" id="dvjump">Go</button></div>
-      <p class="note" style="color:#aaa">Jumping marks all earlier beats' words as caught.</p>
+      <p class="note" style="color:#aaa">Jumping marks the opening's and all earlier beats' words as caught.</p>
       <h4>Words (type characters, e.g. 你好 杯子)</h4>
       <div class="row"><input id="dvword" style="width:11em" placeholder="你好 杯子"><button class="btn" data-m="seen">seen</button><button class="btn" data-m="caught">caught</button><button class="btn" data-m="due">due</button><button class="btn" data-m="lapse">lapsed</button><button class="btn" data-m="mastered">mastered</button><button class="btn" data-m="forget">forget</button></div>
       <h4>Clock: day ${getOffsetDays()} ahead · ${dueIds(s).length} words due</h4>
@@ -64,11 +67,11 @@ export function initDevPanel({ store, toast, onChange }) {
 
   function jump(beat, step) {
     const s = S();
-    s.progress.stage = beat >= 0 ? 'district' : s.progress.stage;
-    s.progress.beat = beat; s.progress.beatStep = step;
-    // earlier beats count as played: their words become caught
-    for (let i = 0; i < beat && i < BEATS.length; i++) for (const w of BEATS[i].words || []) { const e = lookup(w); if (e) { learnWord(s, String(e.id), 1); s.seen[String(e.id)] = true; } }
-    fireChange(); toast('Jumped to beat ' + (beat + 1));
+    if (beat < 0) { s.progress.stage = 'opening'; s.progress.openingStep = step; }
+    else { s.progress.stage = 'district'; s.progress.beat = beat; s.progress.beatStep = step; s.progress.openingStep = 'done'; }
+    // the opening and earlier beats count as played: their words become caught
+    for (const sess of SESSIONS.slice(0, beat + 1)) for (const h of sess.words) { const e = lookup(h); if (e) catchWord(s, String(e.id)); }
+    fireChange(); toast(beat < 0 ? 'Jumped to the opening' : 'Jumped to beat ' + (beat + 1));
   }
 
   function toggle() {

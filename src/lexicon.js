@@ -3,13 +3,16 @@
 import WORDS from './vendor/words.js';
 import LX from '../content/lexicon.json';
 import { NAME_EN, PARTICLE_EN, FIXED_EN } from '../content/names.js';
-import { pinyin } from './vendor/pinyin-pro.js';
+import { pinyin, convert } from './vendor/pinyin-pro.js';
+import { makeSplitter, wordsOf, HAN } from './core/split.js';
 
-export const HAN = /[\u3400-\u9fff]/;
+export { HAN };
 
 const byHan = new Map();   // word -> entry (lowest HSK level wins)
 for (const w of WORDS) { const o = byHan.get(w.h); if (!o || w.hsk < o.hsk) byHan.set(w.h, w); }
 
+// numbered pinyin ("bei1 zi5") to tone marks
+export const numToMarks = (n) => { try { return convert(n, { format: 'numToSymbol' }); } catch { return n; } };
 export const pyPlain = (s) => { try { return pinyin(s, { toneType: 'symbol', type: 'string' }); } catch { return ''; } };
 
 // Extra (non-HSK) entries get ids like "x:泉" so they can live in the same save maps as HSK ids.
@@ -26,18 +29,8 @@ export const allWords = () => WORDS;
 export const taughtOf = (district) => (LX.taught[district] || []).map(([h]) => extras.get(h));
 export const districtOrder = LX.districtOrder;
 
-// Greedy longest-match split into words, as 天天 does for hover.
-export function splitWords(text) {
-  const s = [...text], out = []; let i = 0;
-  while (i < s.length) {
-    if (!HAN.test(s[i])) { let j = i; while (j < s.length && !HAN.test(s[j])) j++; out.push({ t: s.slice(i, j).join('') }); i = j; continue; }
-    let len = Math.min(6, s.length - i);
-    while (len > 1 && !lookup(s.slice(i, i + len).join(''))) len--;
-    const w = s.slice(i, i + len).join('');
-    out.push({ t: w, w: true }); i += len;
-  }
-  return out;
-}
+export const splitWords = makeSplitter((w) => !!lookup(w));
+export const wordsIn = (text) => wordsOf(splitWords, text);
 
 export const pinyinOf = (h) => { const e = lookup(h); return e ? e.p : pyPlain(h); };
 export const englishOf = (h) => { const e = lookup(h); return e ? e.m : ''; };
@@ -79,3 +72,8 @@ export function search(raw) {
   }
   return out.sort((a, b) => b[0] - a[0] || (a[1].w.hsk || 9) - (b[1].w.hsk || 9) || a[1].w.h.length - b[1].w.h.length).slice(0, 40).map((x) => x[1].w);
 }
+
+// numbered pinyin for any word ("quan2"), from the HSK list or pinyin-pro for the extras
+export const numOf = (h) => { const e = lookup(h); if (e && e.n) return e.n; try { return pinyin(h, { toneType: 'num', type: 'string' }).replace(/0/g, '5'); } catch { return ''; } };
+// a word as the drills want it: { id, h, p, m, n }
+export const wordObj = (h) => { const e = lookup(h); return e ? { id: String(e.id), h: e.h, p: e.p, m: e.m, n: numOf(h), kind: e.kind || 'hsk' } : null; };

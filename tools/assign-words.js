@@ -58,9 +58,10 @@ for (const b of BEATS) for (const line of SOURCE[b.id]) for (const t of segment(
 }
 
 // taught words are introduced where the story needs them: 游客 at the ticket window, 泉 at the spring (Hook), 面子 before the duel.
-// 十 waits for the ticket window (四十块) so the 四 / 十 tone pair is fresh at the fish pool.
-const PIN = { 泉: 'hook', 游客: 'inv2', 面子: 'challenge', 十: 'inv2', 四: 'inv2',
-  我: 'opening', 九: 'inv2', 块: 'inv2', 东: 'inv3', 北: 'inv3' };   // keep each word where its line is: 九点 and 四十块 at the window, the four directions together
+// 十 is in the opening so 「七十三」 is readable on day one; 四 waits for the ticket window (四十块), just before the 四 / 十 tone test.
+const PIN = { 泉: 'hook', 游客: 'inv2', 面子: 'challenge', 十: 'opening', 四: 'inv2',
+  我: 'opening', 九: 'inv2', 块: 'inv2', 东: 'inv3', 北: 'inv3', 想: 'hook', 要: 'hook', 先: 'hook', 说: 'inv1', 很: 'inv1', 找: 'inv1', 多: 'inv1', 年: 'inv1',
+  天: 'inv3', 都: 'inv3', 来: 'inv3', 喝: 'inv3', 水: 'inv3' };   // the plan approved on Oct 9   // keep each word where its line is: 九点 and 四十块 at the window, the four directions together
 // 白 is also a surname in the name list, so segmentation files it as a name; the Hook teaches it as "white"
 const EXTRA = { 白: 'hook' };
 const plan = Object.fromEntries(BEATS.map((b) => [b.id, []]));

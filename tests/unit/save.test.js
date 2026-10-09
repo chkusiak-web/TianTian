@@ -70,3 +70,12 @@ describe('export / import', () => {
     expect(() => parseImport(JSON.stringify({ hello: 1 }))).toThrow(/not a Working Title/);
   });
 });
+
+describe('older saves of the current version', () => {
+  it('get fields added later filled with defaults, keeping what they had', () => {
+    const out = migrate({ v: SAVE_VERSION, progress: { stage: 'district', beat: 2 } });
+    expect(out.progress.beat).toBe(2);
+    expect(out.progress.openingStep).toBe('refresh');
+    expect(out.words).toEqual({}); expect(out.dev.dayOffset).toBe(0);
+  });
+});

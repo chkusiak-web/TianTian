@@ -20,3 +20,21 @@ describe('content validator', () => {
     expect(r.problems).toHaveLength(1); expect(r.problems[0]).toMatch(/a\[1\]\.zh/);
   });
 });
+
+import { checkBeatRules } from '../../tools/lib/beatrules.js';
+describe('§6.10 beat rules', () => {
+  const base = () => ({ district: 'baotu', opening: { id: 'o', words: ['你好', '我'], use: { steps: [
+    { npc: 'x', zh: '你好！我，老潘。' }, { build: true, answer: '你好！', extra: [] }, { ask: 'listen', zh: '我', options: ['我', '你好'], answer: '我' }] } }, beats: [] });
+  const quiet = () => {};
+  it('passes a scene where every new word is an answer and appears twice', () => {
+    expect(checkBeatRules(base(), 't', quiet)).toEqual([]);
+  });
+  it('flags a new word that is never an answer', () => {
+    const d = base(); d.opening.words.push('杯子'); d.opening.use.steps.push({ npc: 'x', zh: '杯子，杯子' });
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/杯子 is not the answer/);
+  });
+  it('flags a word the scene uses before it is taught', () => {
+    const d = base(); d.opening.use.steps.push({ npc: 'x', zh: '我要杯子。' });
+    expect(checkBeatRules(d, 't', quiet).join()).toMatch(/uses 要/);
+  });
+});

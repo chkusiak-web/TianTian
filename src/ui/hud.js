@@ -3,15 +3,17 @@
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (tiles, total) => `${(tiles * 16 / total) * 100}%`;
 
-export function createHud({ map, onSettings, onDictionary }) {
+export function createHud({ map, onSettings, onDictionary, onNotebook, onToday }) {
   const overlay = document.getElementById('overlay');
   const hud = document.createElement('div');
   hud.className = 'hud';
-  hud.innerHTML = `<div class="place"><span class="zh">${esc(map.name.zh)}</span> <span class="pen">${esc(map.name.en)}</span><span class="hint" id="hint"></span></div>
-    <div class="hudbtns"><button class="btn" id="hudDict" title="Dictionary (⌘K)">词典</button><button class="btn" id="hudSet" title="Settings">⚙ Settings</button></div>`;
+  hud.innerHTML = `<div class="place"><span class="zh">${esc(map.name.zh)}</span> <span class="pen">${esc(map.name.en)}</span><span class="hint" id="hint"></span><button class="btn today" id="hudToday" hidden>Begin <kbd>Enter</kbd></button></div>
+    <div class="hudbtns"><button class="btn" id="hudBook" title="Old Zhou's notebook (N)">本子</button><button class="btn" id="hudDict" title="Dictionary (⌘K)">词典</button><button class="btn" id="hudSet" title="Settings">⚙ Settings</button></div>`;
   overlay.appendChild(hud);
   hud.querySelector('#hudSet').onclick = onSettings;
   hud.querySelector('#hudDict').onclick = onDictionary;
+  hud.querySelector('#hudBook').onclick = onNotebook;
+  hud.querySelector('#hudToday').onclick = onToday;
 
   const labels = document.getElementById('labels');
   labels.innerHTML = '';
@@ -28,7 +30,10 @@ export function createHud({ map, onSettings, onDictionary }) {
   labels.appendChild(prompt);
 
   return {
-    setHint(text) { hud.querySelector('#hint').textContent = text ? 'Next: ' + text : ''; },
+    setHint(text, button) {
+      hud.querySelector('#hint').textContent = text ? 'Next: ' + text : '';
+      const b = hud.querySelector('#hudToday'); b.hidden = !button; if (button) b.innerHTML = `${esc(button)} <kbd>Enter</kbd>`;
+    },
     showReach(t) {
       if (!t) { prompt.hidden = true; return; }
       prompt.hidden = false;

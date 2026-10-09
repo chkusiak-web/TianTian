@@ -12,7 +12,9 @@ const pos = (page) => page.evaluate(() => ({ x: window.__scene.player.x, y: wind
 test('checkpoint 2: walk the park, talk to Grandma Wang, read a sign, marker follows the beat', async ({ page }) => {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto('/?dev');
-  await page.evaluate(() => localStorage.clear()); await page.reload();
+  // skip the arrival: start in the park at beat 1
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('working-title:save', JSON.stringify({ v: 1, progress: { stage: 'district', beat: 0, openingStep: 'done' } })); });
+  await page.reload();
   await page.waitForFunction(() => window.__scene && window.__scene.player);
 
   // HUD: place and next step
@@ -28,21 +30,23 @@ test('checkpoint 2: walk the park, talk to Grandma Wang, read a sign, marker fol
   const p1 = await pos(page);
   expect(p1.y).toBeGreaterThan(10 * 16);
 
-  // walk left until Grandma Wang is in reach, then talk
+  // walk left until Grandma Wang is in reach (she has today's beat, so the marker is on her)
   await walk(page, 'ArrowLeft', () => window.__scene.near && window.__scene.near.id === 'wang');
   expect((await pos(page)).near).toBe('wang');
   await expect(page.locator('.reach')).toContainText('Talk');
+
+  // someone without a beat today just chats: Xiao Xie by the fish pool
+  await page.evaluate(() => window.__scene.player.setPosition(9.5 * 16, 11.6 * 16));
+  await walk(page, 'ArrowDown', () => window.__scene.near && window.__scene.near.id === 'xie', 1500);
   await page.keyboard.press('Space');
   await expect(page.locator('.dialogue')).toBeVisible();
-  await expect(page.locator('.dialogue .dline')).toContainText('孩子');
+  await expect(page.locator('.dialogue .dline')).toContainText('小谢');
   // hover works in dialogue lines; walking is frozen while it's open
   await page.locator('.dialogue .dline .hz').first().hover();
-  await expect(page.locator('.hztip')).toHaveText(/hái zi/);
+  await expect(page.locator('.hztip')).toHaveText(/nǐ hǎo/);
   const before = await pos(page);
   await walk(page, 'ArrowRight', () => false, 400);
   expect((await pos(page)).x).toBe(before.x);
-  await page.keyboard.press('Space');
-  await expect(page.locator('.dialogue .dline')).toContainText('王奶奶');
   await page.keyboard.press('Space');
   await expect(page.locator('.dialogue')).toHaveCount(0);
 

@@ -25,5 +25,6 @@ export function migrate(data, migrations = MIGRATIONS, target = SAVE_VERSION) {
     if (!step) throw new Error(`No migration from save version ${v}`);
     d = step(d); v++; d.v = v;
   }
-  return d;
+  // fields added since a save was written (same version) get their defaults, so older saves never crash
+  return deepFill(d, defaultSave());
 }

@@ -24,5 +24,12 @@
 22. Portraits: Grandma Wang and Teacher Zhang use 天天's illustrated faces as placeholders (allowed by the brief); everyone else gets a pixel bust cut from their sprite.
 23. For now everyone is visible from the start. Showing Lele only once the story reaches Gate 4 comes with the beats (checkpoint 4).
 24. Baotu word sets are bigger than §2.2's 5–10 (user choice A): the §5.1 lines and notebook page 1 need 87 words. A 12-word core set is taught in the opening taxi ride, then 11–14 per beat. All §5.1 lines and page 1 stay as written. Plan: `content/baotu-words.json`, made by `node tools/assign-words.js --write`.
-25. 十 and 四 are both taught at the ticket window (四十块), right before the fish-pool beat tests 四 vs 十 by ear.
+25. 十 is taught in the opening (so 「七十三」 is readable on day one, §4.1); 四 at the ticket window (四十块), right before the fish-pool beat tests 四 vs 十 by ear.
 26. 白 is taught as "white" in the Hook (the lexicon also lists 白 as Dr. Bai's surname).
+27. The opening runs through the same session loop as a beat: Learn its 13 words, then the taxi ride and Teacher Zhang's handover as the Use step (a dialogue box over a simple backdrop), then the first look at the notebook.
+28. Notebook page 1 is split into sentences (11 lines), so lines come into focus one sentence at a time. After the opening, 「我是老周。」 and 「七十三。」 are readable (the spec says only 「七十三」 on day one; "I am Old Zhou" readable from the start felt like a better hook than hiding it).
+29. Catching: the first right answer in a Learn drill catches a word (enters review). In a scene, a right answer without the pinyin hint catches the new words in it. Names and particles are never "caught"; they're always readable.
+30. A miss in a scene shows the answer (confirm box) and the scene goes on, per §2.1 ("nothing in the scene is a gate"); the conversation then doesn't count as clean.
+31. In single-word drills (pick the meaning, pick the tones), the word being tested can't be hovered until you answer, otherwise click-for-English gives the answer away. Hover on question text elsewhere stays on (choice B).
+32. Pausing: ✕ or Esc closes a session; the step is saved and the next visit resumes there (Learn skips words already caught).
+33. Text per beat (§6.10, 40–150 characters) is a warning, not a failure. The Hook is at 153 counting answer options.
