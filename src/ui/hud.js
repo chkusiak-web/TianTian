@@ -70,7 +70,7 @@ export function createHud({ name, onSettings, onDictionary, onNotebook, onToday,
         labels.appendChild(el);
         if (t.kind === 'place') { el.tabIndex = -1; el.setAttribute('aria-hidden', 'true'); pins.push(pin(t, t.tag, t.pin.x, t.pin.y, now && now.place === t.id)); }
         if (t.kind === 'sign') pins.push(pin(t, t.sign.zh, b.x + b.w / 2, b.y, false));
-        if (t.kind === 'npc' && t.name) pins.push(pin(t, t.name, t.x, t.y - 26, now && now.npc === t.id && place && now.place === place.id));
+        if (t.kind === 'npc' && t.name) pins.push(pin(t, t.name, t.x, t.top - 2, now && now.npc === t.id && place && now.place === place.id));
       }
       pins.forEach((p) => labels.appendChild(p));
       labels.appendChild(tag); tag.hidden = true;

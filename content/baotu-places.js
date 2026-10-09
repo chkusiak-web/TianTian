@@ -3,7 +3,8 @@
 //
 // Coordinates are mockup pixels (the visual thread's district mockup, 640×580, ~1 px per metre):
 //   board  the 480×270 window of the mockup shown as the district board (×1)
-//   view   the 160×90 window a scene shows, drawn ×3 to fill the 480×270 screen
+//   view   top-left of the window a scene shows; zoom (default 3) scales it to fill the 480×270 screen,
+//          so the window is 160×90 at ×3 and 240×135 at ×2
 //   hot    the clickable area of a place on the board; pin: where its name tag stands; tag: the name on it
 //   people / objects: where they stand, in mockup pixels (feet for people, bottom-centre for objects)
 // Lines are what people say when it isn't their beat; the beats' real scenes live in content/baotu.js.
@@ -25,7 +26,7 @@ export default {
     {
       id: 'taichi', en: 'The tai chi square', tag: '泉城广场',
       hot: { x: 452, y: 262, w: 176, h: 130 }, pin: { x: 546, y: 330 },
-      view: { x: 466, y: 290 },
+      view: { x: 400, y: 250 }, zoom: 2,
       people: [
         { id: 'zhang', name: '张老师', en: 'Teacher Zhang', x: 546, y: 362, face: 'down', taichi: true, lines: [{ zh: '你好！我是张老师。', en: 'Hello! I am Teacher Zhang.' }] },
         { id: 'folk1', name: '', en: 'Tai chi neighbor', x: 535, y: 372, face: 'down', taichi: true, lines: [{ zh: '你好！', en: 'Hello!' }] },
