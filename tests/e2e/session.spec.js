@@ -77,3 +77,36 @@ test('checkpoint 3: fresh save → arrival → Hook beat (Refresh → Learn → 
 
   expect(errors).toEqual([]);
 });
+
+test('Investigate 1: the tai chi beat plays as two sessions and points to the ticket window', async ({ page }) => {
+  test.setTimeout(240000);
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?dev');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
+  await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
+  await page.click('.storycard button');            // the arrival starts by itself; pause it and jump ahead
+  await expect(page.locator('.introhz')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await page.keyboard.press('`');
+  await page.selectOption('#dvbeat', '1'); await page.click('#dvjump');
+  await page.keyboard.press('`');
+  await expect(page.locator('#hint')).toContainText('tai chi');
+
+  await page.click('.spot.k-place[data-id="taichi"]');
+  await expect(page.locator('.spot.k-npc[data-id="lin"]')).toContainText('林姐');
+  await page.click('.hot.k-npc[data-id="zhang"]');
+  await expect(page.locator('.sheet .sheettitle')).toContainText('who are you');
+  await autoplay(page, () => !!document.querySelector('.convo .dname') && document.querySelector('.convo .dname').textContent.includes('林姐'));
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  expect(await page.evaluate(() => window.__store.state.progress.part)).toBe(1);
+  await autoplay(page, () => window.__store.state.progress.beat === 2);
+  const s = await page.evaluate(() => window.__store.state);
+  const words = await page.evaluate(() => window.__content.beats[1].words);
+  expect(words.length).toBe(14);
+  expect(s.stats.cleanConversations).toBe(2);
+  expect(s.progress.part).toBe(0);
+  await expect(page.locator('#hint')).toContainText('ticket window');
+  expect(errors).toEqual([]);
+});

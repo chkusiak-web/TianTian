@@ -26,11 +26,11 @@ export default {
     {
       id: 'taichi', en: 'The tai chi square', tag: '泉城广场',
       hot: { x: 452, y: 262, w: 176, h: 130 }, pin: { x: 546, y: 330 },
-      view: { x: 400, y: 250 }, zoom: 2,
+      view: { x: 400, y: 282 }, zoom: 2,
       people: [
-        { id: 'zhang', name: '张老师', en: 'Teacher Zhang', x: 546, y: 362, face: 'down', taichi: true, lines: [{ zh: '你好！我是张老师。', en: 'Hello! I am Teacher Zhang.' }] },
-        { id: 'folk1', name: '', en: 'Tai chi neighbor', x: 535, y: 372, face: 'down', taichi: true, lines: [{ zh: '你好！', en: 'Hello!' }] },
-        { id: 'folk2', name: '', en: 'Tai chi neighbor', x: 557, y: 372, face: 'down', taichi: true, lines: [{ zh: '你好！', en: 'Hello!' }] }
+        { id: 'zhang', name: '张老师', en: 'Teacher Zhang', x: 546, y: 354, face: 'down', taichi: true, lines: [{ zh: '你好！我是张老师。', en: 'Hello! I am Teacher Zhang.' }] },
+        { id: 'lin', name: '林姐', en: 'Sister Lin', x: 533, y: 364, face: 'down', taichi: true, lines: [{ zh: '你好！', en: 'Hello!' }] },
+        { id: 'folk2', name: '', en: 'Tai chi neighbor', x: 559, y: 364, face: 'down', taichi: true, lines: [{ zh: '你好！', en: 'Hello!' }] }
       ],
       objects: []
     },

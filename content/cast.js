@@ -8,6 +8,7 @@ export default {
     xie: { name: '小谢', en: 'Xiao Xie' },
     lele: { name: '乐乐', en: 'Lele' },
     pan: { name: '老潘', en: 'Old Pan' },
+    lin: { name: '林姐', en: 'Sister Lin' },
     kid: { name: '', en: 'A kid' }
   }
 };

@@ -142,12 +142,13 @@
         "cap": "#2A2622"
       }
     },
-    "folk1": {
+    "lin": {
       "src": null,
       "look": {
-        "hair": "#F3EFE6",
-        "top": "#F3EFE6",
-        "bottom": "#5C6A7E"
+        "hair": "#2A2622",
+        "top": "#3A95BE",
+        "bottom": "#F3EFE6",
+        "long": true
       }
     },
     "folk2": {

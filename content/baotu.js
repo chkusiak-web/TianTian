@@ -129,7 +129,62 @@ export default {
         }
       ]
     },
-    { id: 'inv1', title: 'Investigate 1 · tai chi group', npc: 'zhang', words: words.inv1, use: null },
+    {
+      id: 'inv1',
+      title: 'Investigate 1 · tai chi group',
+      npc: 'zhang',
+      en: 'The tai chi square. Introduce yourself and ask around.',
+      words: [...words.inv1, '中国'],   // 中国 added so you can say where you're not from (美国, 英国 aren't HSK 1)
+      parts: [
+        {
+          id: 'inv1a',
+          title: 'Investigate 1 · who are you?',
+          en: 'The tai chi group wants to know who you are.',
+          words: ['叫', '什么', '名字', '哪', '国', '人', '中国'],
+          use: {
+            place: 'The tai chi square',
+            steps: [
+              { note: 'The tai chi group moves slowly in a circle. Teacher Zhang waves you over.' },
+              { npc: 'zhang', zh: '孩子，你好！', en: 'Hello, child!' },
+              { npc: 'lin', zh: '你好！你叫什么名字？', en: 'Hi! What\'s your name?' },
+              { ask: 'listen', npc: 'lin', zh: '你叫什么名字？', en: 'What\'s your name?', label: 'Listening · what does she ask?', q: 'The woman next to him asks you something. What does she want to know?', options: ['你的名字', '你的杯子', '你的本子'], answer: '你的名字' },
+              { npc: 'zhang', zh: '这是老周的孩子。', en: 'This is Old Zhou\'s child.' },
+              { build: true, npc: 'lin', label: 'Speaking · ask her name', q: 'Ask her back: what\'s your name?', answer: '你叫什么名字？', extra: ['我', '是'] },
+              { npc: 'lin', zh: '我叫林姐。你是哪国人？', en: 'I\'m Sister Lin. What country are you from?' },
+              { ask: 'listen', npc: 'lin', zh: '你是哪国人？', en: 'What country are you from?', label: 'Listening · what does she ask now?', q: 'What does she ask this time?', options: ['哪国人', '什么名字', '什么杯子'], answer: '哪国人' },
+              { build: true, npc: 'lin', label: 'Speaking · where you\'re from', q: 'Tell her you\'re not Chinese.', answer: '我不是中国人。', extra: ['你', '吗'] },
+              { npc: 'lin', zh: '哦，你不是中国人！你好，你好！', en: 'Oh, you\'re not Chinese! Hello, hello!' },
+              { build: true, npc: 'lin', label: 'Speaking · who you are', q: 'You have no Chinese name yet. Say: I\'m Old Zhou\'s child.', answer: '我是老周的孩子。', extra: ['叫', '名字'] },
+              { note: 'Teacher Zhang finishes the last move and comes over to talk.' }
+            ]
+          }
+        },
+        {
+          id: 'inv1b',
+          title: 'Investigate 1 · a witness',
+          intro: 'Teacher Zhang walks over, still breathing slowly from the form.',
+          en: 'Teacher Zhang saw something this morning.',
+          words: ['找', '看见', '拿', '很', '多', '年', '说'],
+          use: {
+            place: 'The tai chi square',
+            steps: [
+              { npc: 'zhang', zh: '孩子，你找什么？', en: 'Child, what are you looking for?' },
+              { build: true, npc: 'zhang', label: 'Speaking · say what you\'re looking for', q: 'Say: I\'m looking for a white cup.', answer: '我找一个白杯子。', extra: ['你', '本子'] },
+              { npc: 'zhang', zh: '王奶奶的杯子？我看见了。一个孩子，拿了一个白杯子。', en: 'Grandma Wang\'s cup? I saw it. A child took a white cup.' },
+              { ask: 'listen', npc: 'zhang', zh: '我看见了。', en: 'I saw it.', label: 'Listening · what does he say?', q: 'What does Teacher Zhang say?', options: ['我看见了', '我拿了', '我找了'], answer: '我看见了' },
+              { ask: 'listen', npc: 'zhang', zh: '一个孩子，拿了一个白杯子。', en: 'A child took a white cup.', label: 'Listening · who took it?', q: 'Who took the cup?', options: ['一个孩子', '王奶奶', '老潘'], answer: '一个孩子' },
+              { ask: 'read', npc: 'zhang', zh: '一个孩子，拿了……', en: 'A child took…', label: 'Reading · what did the child do?', q: 'What did the child do with the cup?', options: ['拿了', '看见了', '没有了'], answer: '拿了' },
+              { npc: 'zhang', zh: '很多人看见了。很多孩子！', en: 'Lots of people saw. Lots of children around!' },
+              { npc: 'zhang', zh: '孩子，老周找了很多年。', en: 'Child, Old Zhou looked for many years.' },
+              { ask: 'listen', npc: 'zhang', zh: '老周找了很多年。', en: 'Old Zhou looked for many years.', label: 'Listening · how long?', q: 'How long did Old Zhou look?', options: ['很多年', '七十三年', '一年'], answer: '很多年' },
+              { build: true, npc: 'zhang', label: 'Speaking · ask about Old Zhou', q: 'Ask him: what did Old Zhou say?', answer: '老周说什么？', extra: ['找', '你'] },
+              { npc: 'zhang', zh: '老周说：七十三！七十三！', en: 'Old Zhou said: seventy-three! Seventy-three!' },
+              { note: 'A child took the white cup. Ms. Chen sells the tickets at the south gate. She might know which child came in this morning.' }
+            ]
+          }
+        }
+      ]
+    },
     { id: 'inv2', title: 'Investigate 2 · ticket window', npc: 'chen', words: words.inv2, use: null },
     { id: 'inv3', title: 'Investigate 3 · fish pool and Gate 4', npc: 'xie', words: words.inv3, use: null },
     { id: 'challenge', title: 'Challenge · Lele\'s riddle duel', npc: 'lele', words: words.challenge, use: null },
