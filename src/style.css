@@ -252,3 +252,8 @@ kbd { font: 700 .72em/1 var(--font); background: rgba(255, 255, 255, .7); border
 #arrival .taxi.parked { filter: drop-shadow(0 0 .3em #fff) drop-shadow(0 .15em 0 rgba(36, 48, 43, .35)); }
 #box:has(#arrival:not([hidden])) #labels { display: none; }
 .dialogue .dline.signline, .dialogue.narration .dline.signline { display: inline-block; align-self: flex-start; font: 500 calc(var(--zh) * 1.35)/1.3 var(--font-zh); color: var(--ink); background: #fff; border: .15em solid #8A6A4A; border-radius: .35em; box-shadow: 0 .2em 0 #8A6A4A; padding: .15em .8em; font-style: normal; }
+.hearts { display: inline-flex; align-items: center; gap: .15em; margin-left: .6em; font-size: .95em; }
+.hearts b { font-size: .85em; color: var(--muted); margin-right: .25em; }
+.hearts .h { font-style: normal; color: var(--rule); }
+.hearts .h.on { color: var(--red); }
+.dbody > .hearts { align-self: flex-end; }

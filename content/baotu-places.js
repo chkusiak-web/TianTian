@@ -56,7 +56,7 @@ export default {
     {
       id: 'gate4', en: 'Gate 4', tag: '四号门',
       hot: { x: 408, y: 322, w: 40, h: 40 }, pin: { x: 428, y: 336 },
-      view: { x: 348, y: 296 },
+      view: { x: 352, y: 310 },
       people: [
         { id: 'lele', name: '乐乐', en: 'Lele', x: 416, y: 364, face: 'down', lines: [{ zh: '我是乐乐！', en: 'I am Lele!' }] }
       ],

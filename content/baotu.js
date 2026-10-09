@@ -13,6 +13,7 @@
 //                                                     and words listed in `optional` may be left out or added.
 //   { note }                                          English narration between lines
 //   sign: true      the line is a park sign, drawn as one
+//   { duel: { hearts, loseOn?, win?, retreat, prompts: [prompt steps] } }   a conversation challenge (§6.1, src/session/use.js)
 //   on a prompt: flag: 'name'   a miss sets progress[name] (e.g. clueMistake);  onMiss: [steps]  played only after a miss
 // A unit (the opening or a beat) can be split into `parts`, each one session: { id, title, en, intro?, words, use }.
 // `intro` is the story card that leads into a later part.
@@ -301,7 +302,67 @@ export default {
         }
       ]
     },
-    { id: 'challenge', title: 'Challenge · Lele\'s riddle duel', npc: 'lele', words: words.challenge, use: null },
+    {
+      id: 'challenge',
+      title: 'Challenge · Lele\'s riddle duel',
+      npc: 'lele',
+      en: 'Lele won\'t hand the thermos over until you win his riddle duel.',
+      words: words.challenge,
+      parts: [
+        {
+          id: 'chal1',
+          title: 'Challenge · Lele',
+          en: 'At Gate 4, a boy with a white thermos.',
+          words: ['对不起', '走', '能', '有', '也', '给', '回答'],
+          use: {
+            place: 'Gate 4',
+            steps: [
+              { note: 'At Gate 4, a boy in a red cap hugs a white thermos. He sees you and starts to walk off.' },
+              { ask: 'listen', npc: 'lele', zh: '对不起，我先走了！', en: 'Sorry, I\'m off!', label: 'Listening · what is he doing?', q: 'What is the boy doing?', options: ['我先走了', '我先回答', '我先喝水'], answer: '我先走了' },
+              { build: true, npc: 'lele', label: 'Speaking · stop him', q: 'Say: you can\'t go!', answer: '你不能走！', extra: ['我', '给'] },
+              { npc: 'lele', zh: '我是乐乐。这是我的杯子！', en: 'I\'m Lele. This is my cup!' },
+              { build: true, npc: 'lele', label: 'Speaking · set it straight', q: 'Say: sorry! It\'s Grandma Wang\'s cup.', answer: '对不起！是王奶奶的杯子。', accept: ['对不起，是王奶奶的杯子。'], extra: ['我', '有'] },
+              { ask: 'listen', npc: 'lele', zh: '我有杯子，你没有！', en: 'I have the cup, you don\'t!', label: 'Listening · what does he say?', q: 'What does Lele say?', options: ['我有杯子，你没有', '我没有杯子，你有', '我有杯子，你也有'], answer: '我有杯子，你没有' },
+              { ask: 'listen', npc: 'lele', zh: '你也想要杯子？', en: 'You want the cup too?', label: 'Listening · what does he ask?', q: 'What does Lele ask?', options: ['你也想要杯子？', '你也有杯子？', '你也是孩子？'], answer: '你也想要杯子？' },
+              { ask: 'listen', npc: 'lele', zh: '我不能给你。', en: 'I can\'t give it to you.', label: 'Listening · what won\'t he do?', q: 'What won\'t Lele do?', options: ['不能给你', '不能回答', '不能走'], answer: '不能给你' },
+              { npc: 'lele', zh: '你想要杯子吗？先回答我！', en: 'You want the cup? Answer me first!' },
+              { build: true, npc: 'lele', label: 'Speaking · take him on', q: 'Say: I\'ll answer you!', answer: '我回答你！', extra: ['也', '给'] },
+              { note: 'Lele grins and plants his feet. Riddles, then. Every mistake costs you face: 面子.' }
+            ]
+          }
+        },
+        {
+          id: 'chal2',
+          title: 'Challenge · the riddle duel',
+          intro: 'Lele\'s riddle duel. You have 5 hearts of face (面子); a mistake costs one, three right in a row win one back.',
+          en: 'Win Lele\'s riddle duel to get the thermos back.',
+          words: ['和', '几', '五', '谁', '面子'],
+          use: {
+            place: 'Gate 4',
+            steps: [
+              { npc: 'lele', zh: '先回答我！', en: 'Answer me first!' },
+              { duel: {
+                hearts: 5, loseOn: 'clueMistake', win: 'challengeWon',   // 4 hearts if you misheard the gate (Investigate 3)
+                retreat: '对不起，我先走了。',
+                prompts: [
+                  { ask: 'listen', npc: 'lele', zh: '三和四，是几？', en: 'Three and four makes how many?', label: 'Listening · a number riddle', q: 'Three and four makes…?', options: ['七', '十', '三'], answer: '七' },
+                  { ask: 'read', npc: 'lele', zh: '三 + 四', en: '3 + 4', label: 'Reading · Lele writes it down', q: 'How does Lele say "+"?', options: ['和', '也', '给'], answer: '和' },
+                  { ask: 'listen', npc: 'lele', zh: '我有，你也有。我不能给你。是什么？', en: 'I have one, you have one too. I can\'t give it to you. What is it?', label: 'Listening · the riddle', q: 'What is it?', options: ['名字', '杯子', '面子'], answer: '名字' },
+                  { build: true, npc: 'lele', zh: '五和四，是几？', en: 'Five and four makes how many?', label: 'Test · answer in a full sentence', q: 'Answer him: five and four is nine.', answer: '五和四是九。', extra: ['七', '三'] },
+                  { ask: 'read', npc: 'lele', zh: '五和四，是几？', en: 'Five and four makes how many?', label: 'Reading · his question', q: 'Which word asks "how many"?', options: ['几', '谁', '什么'], answer: '几' },
+                  { ask: 'listen', npc: 'lele', zh: '我是谁？', en: 'Who am I?', label: 'Listening · a new riddle', q: 'What does Lele ask?', options: ['我是谁？', '我是几？', '我是什么？'], answer: '我是谁？' },
+                  { ask: 'read', npc: 'lele', zh: '我是谁的孩子？门票四十块！', en: 'Whose child am I? Tickets, forty yuan!', label: 'Reading · Lele\'s note', q: 'Whose child is Lele?', options: ['陈女士', '王奶奶', '林姐'], answer: '陈女士' },
+                  { build: true, npc: 'lele', label: 'Speaking · tell him', q: 'Tell him: you\'re Ms. Chen\'s child.', answer: '你是陈女士的孩子。', extra: ['谁', '我'] }
+                ]
+              } },
+              { npc: 'lele', zh: '你有面子！给你杯子。', en: 'You\'ve got face! Here\'s the cup.' },
+              { ask: 'listen', npc: 'lele', zh: '你有面子！', en: 'You\'ve got face!', label: 'Listening · what do you have?', q: 'What does Lele say you have?', options: ['面子', '名字', '杯子'], answer: '面子' },
+              { note: 'Lele hands over the white thermos. Grandma Wang is waiting by the spring.' }
+            ]
+          }
+        }
+      ]
+    },
     { id: 'payoff', title: 'Resolution + notebook page 1', npc: 'wang', words: words.payoff, use: null }
   ],
 

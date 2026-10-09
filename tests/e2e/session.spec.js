@@ -170,3 +170,41 @@ test('Investigate 3: mishear 四 as 十, walk to Gate 10, then follow the signs 
   await expect(page.locator('#hint')).toContainText('Lele');
   expect(errors).toEqual([]);
 });
+
+test('Challenge: Lele\'s riddle duel — 4 hearts after the clue mistake, lose, retry, win', async ({ page }) => {
+  test.setTimeout(300000);
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?dev');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
+  await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
+  await page.click('.storycard button');
+  await expect(page.locator('.introhz')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await page.keyboard.press('`');
+  await page.selectOption('#dvbeat', '4'); await page.click('#dvjump');
+  await page.keyboard.press('`');
+  await page.evaluate(() => { window.__store.state.progress.clueMistake = true; window.__store.save(); });
+  await expect(page.locator('#hint')).toContainText('Lele');
+
+  await page.click('.spot.k-place[data-id="gate4"]');
+  await page.click('.hot.k-npc[data-id="lele"]');
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  await expect(page.locator('.storycard')).toContainText('面子');
+  await autoplay(page, () => !!document.querySelector('.convo .hearts'));
+  await expect(page.locator('.convo .hearts .h.on')).toHaveCount(4);
+
+  // miss four choice prompts in a row: out of face
+  for (let k = 0; k < 4; k++) {
+    await page.locator('.convo .choice:not([data-dev-ok])').first().click();
+    await page.click('.cgo');
+  }
+  await expect(page.locator('.convo')).toContainText('对不起，我先走了。');
+  await page.click('.dnext');
+  await expect(page.locator('.convo .hearts .h.on')).toHaveCount(4);
+  await autoplay(page, () => window.__store.state.progress.beat === 5);
+  expect(await page.evaluate(() => window.__store.state.progress.challengeWon)).toBe(true);
+  await expect(page.locator('#hint')).toContainText('thermos back');
+  expect(errors).toEqual([]);
+});

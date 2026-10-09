@@ -7,6 +7,7 @@ import { askChoice, askBuild, esc, speak, gloss } from './quiz-ui.js';
 import { wordsIn, lookup } from '../lexicon.js';
 import { catchWord, markSeen, addCtx } from '../core/words.js';
 import { Paused } from '../ui/panel.js';
+import { shuffle, requeue } from './drills.js';
 import { todayKey } from '../core/clock.js';
 
 // vocabulary in a line: HSK and taught words (names and particles are never 'caught')
@@ -32,12 +33,14 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
     const onKey = (e) => { if (advance && (e.key === ' ' || e.key === 'Enter') && !/^(input|textarea)$/i.test(e.target.tagName)) { e.preventDefault(); e.stopPropagation(); const a = advance; advance = null; a(); } };
     document.addEventListener('keydown', onKey, true);
 
+    let heartsNow = null;   // { hearts, start } during a challenge
+    const heartsHtml = () => heartsNow ? `<span class="hearts" aria-label="面子: ${heartsNow.hearts} of ${heartsNow.start}"><b class="zh">面子</b>${'<i class="h on">♥</i>'.repeat(heartsNow.hearts)}${'<i class="h">♥</i>'.repeat(Math.max(0, heartsNow.start - heartsNow.hearts))}</span>` : '';
     const frame = (step) => {
       const who = step.npc && cast[step.npc];
       const p = step.npc && portraitFor(step.npc, step.face);
       el.classList.toggle('narration', !step.npc);
       el.innerHTML = `${step.npc ? `<div class="portrait">${p ? `<img src="${esc(p.src)}" alt="" class="${p.pixel ? 'pixel' : ''}">` : ''}</div>` : ''}
-        <div class="dbody">${who ? `<div class="dname">${who.name ? `<span class="zh">${esc(who.name)}</span> ` : ''}<span class="den">${esc(who.en)}</span><span class="tagq" hidden></span></div>` : ''}
+        <div class="dbody">${who ? `<div class="dname">${who.name ? `<span class="zh">${esc(who.name)}</span> ` : ''}<span class="den">${esc(who.en)}</span><span class="tagq" hidden></span>${heartsHtml()}</div>` : heartsHtml()}
         <div class="dline"></div><div class="dask"></div><div class="dfoot"></div></div>`;
       return { line: el.querySelector('.dline'), ask: el.querySelector('.dask'), foot: el.querySelector('.dfoot') };
     };
@@ -48,22 +51,8 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
     };
     const nextBtn = (box, label = 'Next') => { box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button><button class="btn primary dnext">${label} <kbd>Space</kbd></button>`; box.foot.querySelector('.dnext').onclick = () => { if (advance) { const a = advance; advance = null; a(); } }; };
 
-    (async () => {
-      const steps = [...use.steps];
-      for (let i = 0; i < steps.length; i++) {
-        const step = steps[i];
-        if (step.at && onAt) onAt(step.at);   // the scene moves on (the arrival's taxi)
-        const box = frame(step);
-        if (step.note) {
-          box.line.innerHTML = `<em>${esc(step.note)}</em>`; nextBtn(box); box.foot.querySelector('.dsay').remove();
-          await wait(); continue;
-        }
-        if (!step.ask && !step.build) {
-          say(box, step); nextBtn(box);
-          box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc });
-          await wait(); continue;
-        }
-        // a prompt
+    // one prompt: they say (listen) or show (read) a line and you pick, or you build an answer from tiles
+    async function prompt(box, step) {
         // a listening question doesn't show the line until you've answered (silent mode shows it: it becomes reading)
         const hidden = step.ask === 'listen' && step.zh && !silentToday();
         if (step.zh) { say(box, step); if (hidden) { box.line.innerHTML = listenHtml(); box.line.classList.add('hiddenline'); box.line.querySelector('.play').onclick = () => speak(step.zh, { who: step.npc }); } if (!hidden) { box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button>`; box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc }); } }
@@ -76,10 +65,56 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
         if (step.ask) r = await askChoice(area, { options: step.options.map((o) => ({ html: esc(o), value: o, zh: true })), answer: step.answer, answerHtml: esc(step.answer), glossText: gloss(step.answer) });
         else r = await askBuild(area, { answer: step.answer, accept: step.accept || [], optional: step.optional || [], extra: step.extra || [] });
         if (r.hint) result.hints++;
-        if (!r.ok) { result.misses++; if (step.flag) S.progress[step.flag] = true; if (step.onMiss) steps.splice(i + 1, 0, ...step.onMiss); }
+        if (!r.ok) result.misses++;
         if (hidden) { box.line.textContent = step.zh; box.line.classList.remove('hiddenline'); }
         const said = r.said || step.answer;
         if (r.ok && !r.hint) for (const id of idsIn(said)) { if (catchWord(S, id)) result.caught.push(id); addCtx(S, id, said, sessionId); }
+        store.save();
+        return r;
+    }
+
+    // A conversation challenge (CONCEPT §6.1): hearts (面子) are the mistakes you're allowed. A miss costs a heart and
+    // the prompt comes back two prompts later; 3 right in a row gives a heart back. Out of hearts, you excuse yourself
+    // and try again at once with the prompts reshuffled. Nothing is lost.
+    async function duel(d) {
+      const start = d.hearts - (d.loseOn && S.progress[d.loseOn] ? 1 : 0);
+      for (let round = 0; ; round++) {
+        let hearts = start, streak = 0;
+        const q = round ? shuffle(d.prompts) : [...d.prompts];
+        for (let i = 0; i < q.length && hearts > 0; i++) {
+          heartsNow = { hearts, start };
+          const r = await prompt(frame(q[i]), q[i]);
+          if (r.ok) { if (++streak % 3 === 0 && hearts < start) hearts++; }
+          else { hearts--; streak = 0; requeue(q, i, q[i]); }
+          heartsNow = { hearts, start };
+        }
+        heartsNow = null;
+        if (hearts > 0) { S.progress[d.win || 'challengeWon'] = true; store.save(); return; }
+        const box = frame({});
+        box.line.innerHTML = `<em>Out of face. You say:</em> <span class="zh">${esc(d.retreat)}</span><br><em>Nothing is lost. The riddles are shuffled; try again.</em>`;
+        nextBtn(box, 'Try again'); box.foot.querySelector('.dsay').onclick = () => speak(d.retreat);
+        await wait();
+      }
+    }
+
+    (async () => {
+      const steps = [...use.steps];
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        if (step.at && onAt) onAt(step.at);   // the scene moves on (the arrival's taxi)
+        if (step.duel) { await duel(step.duel); continue; }
+        const box = frame(step);
+        if (step.note) {
+          box.line.innerHTML = `<em>${esc(step.note)}</em>`; nextBtn(box); box.foot.querySelector('.dsay').remove();
+          await wait(); continue;
+        }
+        if (!step.ask && !step.build) {
+          say(box, step); nextBtn(box);
+          box.foot.querySelector('.dsay').onclick = () => speak(step.zh, { who: step.npc });
+          await wait(); continue;
+        }
+        const r = await prompt(box, step);
+        if (!r.ok) { if (step.flag) S.progress[step.flag] = true; if (step.onMiss) steps.splice(i + 1, 0, ...step.onMiss); }
         store.save();
       }
       finished = true;
