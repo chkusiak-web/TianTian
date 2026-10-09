@@ -12,6 +12,8 @@
 //                                                     (src/session/close.js): a repeated word said once, 吧/啊/呀/呢,
 //                                                     and words listed in `optional` may be left out or added.
 //   { note }                                          English narration between lines
+//   sign: true      the line is a park sign, drawn as one
+//   on a prompt: flag: 'name'   a miss sets progress[name] (e.g. clueMistake);  onMiss: [steps]  played only after a miss
 // A unit (the opening or a beat) can be split into `parts`, each one session: { id, title, en, intro?, words, use }.
 // `intro` is the story card that leads into a later part.
 //   at: 'station' | 'road' | 'home'                   (opening only) moves the taxi on the arrival map (src/ui/arrival.js)
@@ -238,7 +240,67 @@ export default {
         }
       ]
     },
-    { id: 'inv3', title: 'Investigate 3 · fish pool and Gate 4', npc: 'xie', words: words.inv3, use: null },
+    {
+      id: 'inv3',
+      title: 'Investigate 3 · fish pool and Gate 4',
+      npc: 'xie',
+      en: 'A kid by the fish pool shouts the gate number; then the park signs lead you to Gate 4.',
+      words: words.inv3,
+      parts: [
+        {
+          id: 'inv3a',
+          title: 'Investigate 3 · the fish pool',
+          en: 'A kid by the fish pool saw where the boy went.',
+          words: ['他', '去', '这儿', '天', '都', '来', '喝', '水'],
+          use: {
+            place: 'The fish pool',
+            steps: [
+              { note: 'Fish dart through the pool. Xiao Xie is feeding them, and the kid next to her is jumping up and down.' },
+              { npc: 'kid', zh: '四号门！他去了四号门！', en: 'Gate 4! He went to Gate 4!' },
+              // a miss here is the spec's wrong turn: you walk to Gate 10, and Lele's duel starts with 4 hearts
+              { ask: 'listen', npc: 'kid', zh: '他去了四号门！', en: 'He went to Gate 4!', label: 'Tones · 四 or 十?', q: 'Which gate did he go to?', options: ['四号门', '十号门'], answer: '四号门', flag: 'clueMistake',
+                onMiss: [
+                  { note: 'You run to the far side of the park. There is no Gate 10 anywhere. You walk back, out of breath.' },
+                  { npc: 'xie', zh: '这儿没有十号门。是四号门！', en: 'There\'s no Gate 10 here. It\'s Gate 4!' }
+                ] },
+              { npc: 'xie', zh: '你好！我是小谢。他天天都来这儿。', en: 'Hi! I\'m Xiao Xie. He comes here every day.' },
+              { ask: 'listen', npc: 'xie', zh: '他天天都来这儿。', en: 'He comes here every day.', label: 'Listening · how often?', q: 'How often does the boy come here?', options: ['天天都来', '天天都去', '天天都喝水'], answer: '天天都来' },
+              { build: true, npc: 'xie', label: 'Speaking · check what you heard', q: 'Ask her: he went to Gate 4?', answer: '他去了四号门？', extra: ['十', '来'] },
+              { npc: 'xie', zh: '是，他去了。他天天都去四号门。', en: 'Yes, he did. He goes to Gate 4 every day.' },
+              { npc: 'kid', zh: '你喝水吗？', en: 'Do you want some water?' },
+              { ask: 'listen', npc: 'kid', zh: '你喝水吗？', en: 'Do you want some water?', label: 'Listening · what does the kid offer?', q: 'What does the kid offer you?', options: ['喝水', '喝泉', '门票'], answer: '喝水' },
+              { build: true, npc: 'kid', label: 'Speaking · take it', q: 'Say: I\'ll have water. Thank you!', answer: '我喝水，谢谢！', accept: ['我喝水。谢谢！'], extra: ['不', '他'] },
+              { npc: 'xie', zh: '老周天天都来这儿。他喝泉水。', en: 'Old Zhou came here every day too. He drank the spring water.' },
+              { build: true, npc: 'xie', label: 'Speaking · ask about Old Zhou', q: 'Ask her: Old Zhou came here?', answer: '老周来这儿？', accept: ['老周来这儿吗？'], extra: ['去', '吗'] },
+              { npc: 'xie', zh: '是。他天天都来，天天都喝泉水。', en: 'Yes. He came every day, and drank the spring water every day.' }
+            ]
+          }
+        },
+        {
+          id: 'inv3b',
+          title: 'Investigate 3 · the signs',
+          intro: 'Xiao Xie walks you to a crossing of paths. Signs point every way.',
+          en: 'Follow the park signs to Gate 4.',
+          words: ['东', '西', '南', '北', '前边', '左边'],
+          use: {
+            place: 'A crossing of paths near the fish pool',
+            steps: [
+              { npc: 'xie', zh: '四号门……前边，左边！', en: 'Gate 4… straight ahead, then left!' },
+              { ask: 'listen', npc: 'xie', zh: '前边，左边！', en: 'Ahead, then left!', label: 'Listening · which way?', q: 'Which way does Xiao Xie say?', options: ['前边，左边', '左边，前边', '前边，前边'], answer: '前边，左边' },
+              { ask: 'read', sign: true, zh: '东门 →', en: 'East Gate →', label: 'Reading · a sign', q: 'Which gate is this way?', options: ['东门', '西门', '北门'], answer: '东门' },
+              { ask: 'read', sign: true, zh: '← 西门', en: '← West Gate', label: 'Reading · a sign', q: 'And this way?', options: ['西门', '南门', '东门'], answer: '西门' },
+              { ask: 'read', sign: true, zh: '北门 ↑', en: 'North Gate ↑', label: 'Reading · a sign', q: 'Which gate is straight ahead?', options: ['北门', '南门', '东门'], answer: '北门' },
+              { ask: 'read', sign: true, zh: '南门 ↓', en: 'South Gate ↓', label: 'Reading · a sign', q: 'Which gate is behind you, the way you came in?', options: ['南门', '北门', '西门'], answer: '南门' },
+              { ask: 'read', sign: true, zh: '四号门 → 左边', en: 'Gate 4 → left', label: 'Reading · find Gate 4', q: 'Which way is Gate 4?', options: ['左边', '前边', '北门'], answer: '左边' },
+              { build: true, npc: 'xie', label: 'Speaking · tell Xiao Xie', q: 'Say: Gate 4 is to the left!', answer: '四号门，左边！', extra: ['前边', '东'] },
+              { npc: 'xie', zh: '是！前边，左边。你去，我不去。', en: 'Yes! Ahead, then left. You go; I\'m staying.' },
+              { build: true, npc: 'xie', label: 'Speaking · say where you\'re going', q: 'Say: I\'m going to Gate 4.', answer: '我去四号门。', extra: ['北', '西'] },
+              { note: 'Past the willows, at Gate 4, a boy in a blue cap is holding a white thermos. That must be Lele.' }
+            ]
+          }
+        }
+      ]
+    },
     { id: 'challenge', title: 'Challenge · Lele\'s riddle duel', npc: 'lele', words: words.challenge, use: null },
     { id: 'payoff', title: 'Resolution + notebook page 1', npc: 'wang', words: words.payoff, use: null }
   ],

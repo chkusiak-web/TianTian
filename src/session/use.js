@@ -42,14 +42,16 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
       return { line: el.querySelector('.dline'), ask: el.querySelector('.dask'), foot: el.querySelector('.dfoot') };
     };
     const say = (box, step) => {
-      box.line.classList.add('zh'); box.line.textContent = step.zh;
+      box.line.classList.add('zh'); box.line.classList.toggle('signline', !!step.sign); box.line.textContent = step.zh;
       const ids = idsIn(step.zh); markSeen(S, ids); ids.forEach((id) => addCtx(S, id, step.zh, sessionId));
       speak(step.zh, { who: step.npc });
     };
     const nextBtn = (box, label = 'Next') => { box.foot.innerHTML = `<button class="icon-btn dsay" aria-label="Listen again">🔊</button><button class="btn primary dnext">${label} <kbd>Space</kbd></button>`; box.foot.querySelector('.dnext').onclick = () => { if (advance) { const a = advance; advance = null; a(); } }; };
 
     (async () => {
-      for (const step of use.steps) {
+      const steps = [...use.steps];
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
         if (step.at && onAt) onAt(step.at);   // the scene moves on (the arrival's taxi)
         const box = frame(step);
         if (step.note) {
@@ -74,7 +76,7 @@ export function runConversation({ use, store, cast, portraitFor, sessionId, onAt
         if (step.ask) r = await askChoice(area, { options: step.options.map((o) => ({ html: esc(o), value: o, zh: true })), answer: step.answer, answerHtml: esc(step.answer), glossText: gloss(step.answer) });
         else r = await askBuild(area, { answer: step.answer, accept: step.accept || [], optional: step.optional || [], extra: step.extra || [] });
         if (r.hint) result.hints++;
-        if (!r.ok) result.misses++;
+        if (!r.ok) { result.misses++; if (step.flag) S.progress[step.flag] = true; if (step.onMiss) steps.splice(i + 1, 0, ...step.onMiss); }
         if (hidden) { box.line.textContent = step.zh; box.line.classList.remove('hiddenline'); }
         const said = r.said || step.answer;
         if (r.ok && !r.hint) for (const id of idsIn(said)) { if (catchWord(S, id)) result.caught.push(id); addCtx(S, id, said, sessionId); }

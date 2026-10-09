@@ -137,3 +137,36 @@ test('Investigate 2: the ticket window and the ledger, then on to the fish pool'
   expect(await page.evaluate(() => window.__store.state.stats.cleanConversations)).toBe(2);
   expect(errors).toEqual([]);
 });
+
+test('Investigate 3: mishear 四 as 十, walk to Gate 10, then follow the signs to Gate 4', async ({ page }) => {
+  test.setTimeout(240000);
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?dev');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__scene && window.__scene.view && window.__store);
+  await page.evaluate(() => { window.__store.state.dev.autoAnswer = true; window.__store.save(); });
+  await page.click('.storycard button');
+  await expect(page.locator('.introhz')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await page.keyboard.press('`');
+  await page.selectOption('#dvbeat', '3'); await page.click('#dvjump');
+  await page.keyboard.press('`');
+  await expect(page.locator('#hint')).toContainText('fish pool');
+
+  await page.click('.spot.k-place[data-id="fish"]');
+  await page.click('.hot.k-npc[data-id="xie"]');
+  await autoplay(page, () => (document.querySelector('.convo .tagq') || {}).textContent === 'Tones');
+  await page.click('.convo .choice:not([data-dev-ok])');               // hear 十 instead of 四
+  await page.click('.cgo');
+  await expect(page.locator('.convo')).toContainText('Gate 10');
+  await page.keyboard.press('Space');
+  await expect(page.locator('.convo .dline')).toContainText('这儿没有十号门');
+  expect(await page.evaluate(() => window.__store.state.progress.clueMistake)).toBe(true);
+
+  await autoplay(page, () => !!document.querySelector('.storycard'));
+  await expect(page.locator('.storycard')).toContainText('Signs');
+  await autoplay(page, () => window.__store.state.progress.beat === 4);
+  await expect(page.locator('#hint')).toContainText('Lele');
+  expect(errors).toEqual([]);
+});

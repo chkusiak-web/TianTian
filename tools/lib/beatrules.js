@@ -19,7 +19,7 @@ const readable = (t, known) => free.has(t) || known.has(t) || [...t].every((c) =
 
 function sceneText(use) {
   const all = [], answers = [];
-  for (const s of use.steps) {
+  for (const s of use.steps.flatMap((x) => [x, ...(x.onMiss || [])])) {
     if (s.zh) all.push(s.zh);
     if (s.options) all.push(...s.options);
     if (s.answer) { all.push(s.answer); answers.push(s.answer); }
